@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Business Settings - Amber Auto Agencies</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #101828;
+}
+
+/* HEADER */
+
+.header {
+    background: #101828;
+    color: white;
+    padding: 18px 25px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.back-btn {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    background: #d97706;
+}
+
+/* MAIN */
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 30px;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+.card h2 {
+    margin-top: 0;
+}
+
+.description {
+    color: #667085;
+    margin-bottom: 25px;
+}
+
+/* FORM */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    font-size: 15px;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #f59e0b;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* SAVE BUTTON */
+
+.save-btn {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.save-btn:hover {
+    background: #d97706;
+}
+
+.message {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #16a34a;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    .header {
+        padding: 15px;
+    }
+
+    .header h1 {
+        font-size: 17px;
+    }
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- HEADER -->
+
+<div class="header">
+
+    <h1>
+        Business Settings
+    </h1>
+
+    <button
+        class="back-btn"
+        onclick="window.location.href='dashboard.html'">
+
+        ← Dashboard
+
+    </button>
+
+</div>
+
+
+<!-- MAIN -->
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>
+            Business Information
+        </h2>
+
+        <p class="description">
+            Update the information used by
+            Amber Auto Agencies.
+        </p>
+
+
+        <!-- BUSINESS NAME -->
+
+        <div class="form-group">
+
+            <label>
+                Business Name
+            </label>
+
+            <input
+                type="text"
+                id="businessName"
+                placeholder="Amber Auto Agencies">
+
+        </div>
+
+
+        <!-- PHONE -->
+
+        <div class="form-group">
+
+            <label>
+                Phone Number
+            </label>
+
+            <input
+                type="text"
+                id="phone"
+                placeholder="Example: 917758861213">
+
+        </div>
+
+
+        <!-- WHATSAPP -->
+
+        <div class="form-group">
+
+            <label>
+                WhatsApp Number
+            </label>
+
+            <input
+                type="text"
+                id="whatsapp"
+                placeholder="Example: 917758861213">
+
+        </div>
+
+
+        <!-- EMAIL -->
+
+        <div class="form-group">
+
+            <label>
+                Email
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Example: info@example.com">
+
+        </div>
+
+
+        <!-- ADDRESS -->
+
+        <div class="form-group">
+
+            <label>
+                Business Address
+            </label>
+
+            <textarea
+                id="address"
+                placeholder="Enter your complete business address"></textarea>
+
+        </div>
+
+
+        <!-- UPI -->
+
+        <div class="form-group">
+
+            <label>
+                UPI ID
+            </label>
+
+            <input
+                type="text"
+                id="upi"
+                placeholder="Example: yourname@upi">
+
+        </div>
+
+
+        <button
+            class="save-btn"
+            onclick="saveSettings()">
+
+            Save Settings
+
+        </button>
+
+
+        <div
+            id="message"
+            class="message">
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* LOAD SETTINGS */
+
+function loadSettings() {
+
+    const settings =
+        JSON.parse(
+            localStorage.getItem("amberBusinessSettings")
+        ) || {};
+
+
+    document.getElementById("businessName").value =
+        settings.businessName || "";
+
+
+    document.getElementById("phone").value =
+        settings.phone || "";
+
+
+    document.getElementById("whatsapp").value =
+        settings.whatsapp || "";
+
+
+    document.getElementById("email").value =
+        settings.email || "";
+
+
+    document.getElementById("address").value =
+        settings.address || "";
+
+
+    document.getElementById("upi").value =
+        settings.upi || "";
+
+}
+
+
+/* SAVE SETTINGS */
+
+function saveSettings() {
+
+    const settings = {
+
+        businessName:
+            document.getElementById("businessName").value.trim(),
+
+        phone:
+            document.getElementById("phone").value.trim(),
+
+        whatsapp:
+            document.getElementById("whatsapp").value.trim(),
+
+        email:
+            document.getElementById("email").value.trim(),
+
+        address:
+            document.getElementById("address").value.trim(),
+
+        upi:
+            document.getElementById("upi").value.trim()
+
+    };
+
+
+    localStorage.setItem(
+        "amberBusinessSettings",
+        JSON.stringify(settings)
+    );
+
+
+    document.getElementById("message").innerText =
+        "✓ Settings saved successfully.";
+
+
+    setTimeout(function() {
+
+        document.getElementById("message").innerText = "";
+
+    }, 3000);
+
+}
+
+
+/* LOAD */
+
+loadSettings();
+
+</script>
+
+
+</body>
+
+</html>

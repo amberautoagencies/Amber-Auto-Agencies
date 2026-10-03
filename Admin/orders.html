@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Amber Auto Agencies - Orders</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #101828;
+}
+
+/* HEADER */
+
+.header {
+    background: #101828;
+    color: white;
+    padding: 18px 25px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.back {
+    background: #f59e0b;
+    color: white;
+    border: none;
+
+    padding: 9px 16px;
+    border-radius: 6px;
+
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* MAIN */
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+}
+
+/* TITLE */
+
+.page-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 25px;
+}
+
+.page-title h2 {
+    margin: 0;
+}
+
+/* ORDER BOX */
+
+.orders-box {
+    background: white;
+
+    padding: 25px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 3px 12px rgba(0,0,0,0.08);
+}
+
+/* ORDER CARD */
+
+.order-card {
+    border: 1px solid #e4e7ec;
+
+    border-radius: 10px;
+
+    padding: 20px;
+
+    margin-bottom: 18px;
+}
+
+.order-card:last-child {
+    margin-bottom: 0;
+}
+
+/* ORDER HEADER */
+
+.order-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 15px;
+}
+
+.order-id {
+    font-weight: bold;
+    color: #101828;
+}
+
+.order-date {
+    font-size: 13px;
+    color: #667085;
+}
+
+/* CUSTOMER */
+
+.customer-box {
+    background: #f9fafb;
+
+    padding: 15px;
+
+    border-radius: 8px;
+
+    margin-bottom: 15px;
+}
+
+.customer-box h4 {
+    margin: 0 0 10px;
+}
+
+.customer-box p {
+    margin: 5px 0;
+
+    color: #475467;
+
+    font-size: 14px;
+}
+
+/* PRODUCTS */
+
+.products-title {
+    font-weight: bold;
+
+    margin-bottom: 10px;
+}
+
+.product-item {
+    border-top: 1px solid #e4e7ec;
+
+    padding: 10px 0;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+.product-name {
+    font-weight: bold;
+}
+
+.product-details {
+    color: #667085;
+
+    font-size: 13px;
+
+    margin-top: 4px;
+}
+
+/* TOTAL */
+
+.order-total {
+    border-top: 1px solid #e4e7ec;
+
+    margin-top: 10px;
+
+    padding-top: 15px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+/* STATUS */
+
+.status-box {
+    margin-top: 15px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.status-box label {
+    font-weight: bold;
+}
+
+.status-box select {
+    padding: 8px 12px;
+
+    border: 1px solid #d0d5dd;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+}
+
+/* EMPTY */
+
+.empty {
+    text-align: center;
+
+    padding: 50px 10px;
+
+    color: #667085;
+}
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+
+    .header h1 {
+        font-size: 17px;
+    }
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    .page-title {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 10px;
+    }
+
+    .order-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 5px;
+    }
+
+    .product-item {
+        flex-direction: column;
+
+        gap: 5px;
+    }
+
+    .order-total {
+        font-size: 16px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<div class="header">
+
+    <h1>
+        Amber Auto Agencies — Orders
+    </h1>
+
+    <button
+        class="back"
+        onclick="goDashboard()">
+
+        ← Dashboard
+
+    </button>
+
+</div>
+
+
+<!-- MAIN -->
+
+<div class="container">
+
+    <div class="page-title">
+
+        <h2>
+            Order Management
+        </h2>
+
+    </div>
+
+
+    <div class="orders-box">
+
+        <div id="ordersList">
+
+            <div class="empty">
+
+                No orders received yet.
+
+                <br><br>
+
+                Customer orders will appear here.
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* DASHBOARD */
+
+function goDashboard() {
+
+    window.location.href =
+        "dashboard.html";
+
+}
+
+
+/* LOAD ORDERS */
+
+function loadOrders() {
+
+    var orders =
+        JSON.parse(
+            localStorage.getItem("amberOrders")
+        ) || [];
+
+
+    var ordersList =
+        document.getElementById("ordersList");
+
+
+    if (orders.length === 0) {
+
+        ordersList.innerHTML = `
+
+            <div class="empty">
+
+                No orders received yet.
+
+                <br><br>
+
+                Customer orders will appear here.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    ordersList.innerHTML = "";
+
+
+    orders.forEach(function(order) {
+
+        var orderCard =
+            document.createElement("div");
+
+
+        orderCard.className =
+            "order-card";
+
+
+        orderCard.innerHTML = `
+
+            <div class="order-header">
+
+                <div class="order-id">
+
+                    Order #${order.id}
+
+                </div>
+
+                <div class="order-date">
+
+                    ${order.date || ""}
+
+                </div>
+
+            </div>
+
+
+            <div class="customer-box">
+
+                <h4>
+                    Customer Details
+                </h4>
+
+                <p>
+                    <b>Name:</b>
+                    ${order.customer?.name || ""}
+                </p>
+
+                <p>
+                    <b>Mobile:</b>
+                    ${order.customer?.mobile || ""}
+                </p>
+
+                <p>
+                    <b>Email:</b>
+                    ${order.customer?.email || "Not provided"}
+                </p>
+
+                <p>
+                    <b>Address:</b>
+                    ${order.customer?.address || ""}
+                </p>
+
+                <p>
+                    <b>City:</b>
+                    ${order.customer?.city || ""}
+                </p>
+
+                <p>
+                    <b>State:</b>
+                    ${order.customer?.state || ""}
+                </p>
+
+                <p>
+                    <b>PIN Code:</b>
+                    ${order.customer?.pin || ""}
+                </p>
+
+            </div>
+
+
+            <div class="products-title">
+
+                Products
+
+            </div>
+
+
+            <div>
+
+                ${(order.items || []).map(function(item) {
+
+                    return `
+
+                        <div class="product-item">
+
+                            <div>
+
+                                <div class="product-name">
+
+                                    ${item.name}
+
+                                </div>
+
+                                <div class="product-details">
+
+                                    Qty: ${item.qty}
+                                    × ₹${item.price}
+
+                                </div>
+
+                            </div>
+
+                            <div>
+
+                                ₹${(
+                                    Number(item.price) *
+                                    Number(item.qty)
+                                ).toLocaleString("en-IN")}
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }).join("")}
+
+            </div>
+
+
+            <div class="order-total">
+
+                <span>
+                    Order Total
+                </span>
+
+                <span>
+                    ₹${Number(order.total || 0).toLocaleString("en-IN")}
+                </span>
+
+            </div>
+
+
+            <div class="status-box">
+
+                <label>
+                    Status:
+                </label>
+
+                <select
+                    onchange="updateOrderStatus('${order.id}', this.value)">
+
+                    <option value="Pending"
+                        ${order.status === "Pending" ? "selected" : ""}>
+                        Pending
+                    </option>
+
+                    <option value="Paid"
+                        ${order.status === "Paid" ? "selected" : ""}>
+                        Paid
+                    </option>
+
+                    <option value="Processing"
+                        ${order.status === "Processing" ? "selected" : ""}>
+                        Processing
+                    </option>
+
+                    <option value="Shipped"
+                        ${order.status === "Shipped" ? "selected" : ""}>
+                        Shipped
+                    </option>
+
+                    <option value="Delivered"
+                        ${order.status === "Delivered" ? "selected" : ""}>
+                        Delivered
+                    </option>
+
+                </select>
+
+            </div>
+
+        `;
+
+
+        ordersList.appendChild(orderCard);
+
+    });
+
+}
+
+
+/* UPDATE ORDER STATUS */
+
+function updateOrderStatus(id, status) {
+
+    var orders =
+        JSON.parse(
+            localStorage.getItem("amberOrders")
+        ) || [];
+
+
+    orders =
+        orders.map(function(order) {
+
+            if (String(order.id) === String(id)) {
+
+                order.status = status;
+
+            }
+
+            return order;
+
+        });
+
+
+    localStorage.setItem(
+        "amberOrders",
+        JSON.stringify(orders)
+    );
+
+
+    alert(
+        "Order status updated to " + status
+    );
+
+}
+
+
+/* LOAD */
+
+loadOrders();
+
+</script>
+
+</body>
+
+</html>
