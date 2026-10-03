@@ -274,6 +274,10 @@ Automotive electrical parts and accessories. Contact us for product availability
               <label class="block text-xs font-bold text-slate-700 mb-1">PIN Code *</label>
               <input id="customerPincode" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" placeholder="6-digit PIN" class="w-full border border-slate-300 rounded-xl px-3 py-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100">
             </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Order / Delivery Note <span class="font-normal text-slate-400">(Optional)</span></label>
+              <textarea id="customerNotes" rows="2" placeholder="Example: Call before delivery" class="w-full border border-slate-300 rounded-xl px-3 py-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 resize-none"></textarea>
+            </div>
           </div>
 
           <div class="mt-5 bg-slate-50 border border-slate-200 rounded-xl p-4">
@@ -310,9 +314,26 @@ Automotive electrical parts and accessories. Contact us for product availability
               <div class="font-bold text-slate-900 mt-1" id="upiIdText">amberautoagencies@ybl</div>
               <button onclick="copyUpiId()" class="mt-2 text-xs font-bold text-amber-700"><i class="fa-regular fa-copy mr-1"></i>Copy UPI ID</button>
             </div>
-            <div class="mt-4 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">After payment, send the order details to Amber Auto Agencies on WhatsApp. Payment verification will be done before dispatch.</div>
-            <a id="whatsappCheckout" href="#" target="_blank" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp"></i>I've Paid — Send Order on WhatsApp</a>
+            <div class="mt-4 text-left">
+              <label class="block text-xs font-bold text-slate-700 mb-1">UPI Transaction / Reference Number <span class="font-normal text-slate-400">(Optional)</span></label>
+              <input id="paymentReference" type="text" placeholder="Enter UPI reference / UTR if available" class="w-full border border-slate-300 rounded-xl px-3 py-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100">
+            </div>
+            <div class="mt-4 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">After payment, click the button below. Your order will be saved and payment will remain Pending Verification until Amber Auto Agencies verifies it.</div>
+            <button id="placeOrderButton" type="button" onclick="submitPaidOrder()" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i class="fa-solid fa-check"></i>I've Paid — Place Order</button>
           </div>
+        </div>
+
+        <div id="checkoutSuccessStep" class="hidden text-center py-2">
+          <div class="w-16 h-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mb-4"><i class="fa-solid fa-check"></i></div>
+          <h4 class="text-xl font-extrabold text-slate-900">Order Placed Successfully!</h4>
+          <p class="text-sm text-slate-500 mt-2">Your order has been saved. Amber Auto Agencies will verify your payment before dispatch.</p>
+          <div class="mt-5 bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div class="text-xs text-slate-500 uppercase font-bold tracking-wide">Order Number</div>
+            <div id="successOrderNumber" class="mt-1 text-lg font-extrabold text-amber-600 break-all"></div>
+            <div id="successOrderTotal" class="mt-2 text-sm font-bold text-slate-700"></div>
+          </div>
+          <a id="successWhatsAppButton" href="#" target="_blank" rel="noopener" class="mt-5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i class="fa-brands fa-whatsapp"></i>Send Order on WhatsApp</a>
+          <button type="button" onclick="finishSuccessfulOrder()" class="mt-3 w-full border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-xl">Continue Shopping</button>
         </div>
       </div>
     </div>
@@ -332,6 +353,74 @@ const supabaseClient = supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
+
+async function loadBusinessSettingsFromSupabase() {
+    try {
+        const { data, error } = await supabaseClient
+            .from("Business_Settings")
+            .select("business_name, phone, whatsapp, email, address, upi")
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Business settings load error:", error);
+            return;
+        }
+
+        if (data) {
+            businessSettings = {
+                businessName: data.business_name || "Amber Auto Agencies",
+                phone: data.phone || "",
+                whatsapp: data.whatsapp || data.phone || "",
+                email: data.email || "",
+                address: data.address || "",
+                upi: data.upi || ""
+            };
+        }
+
+        applyBusinessSettingsToWebsite();
+    } catch (error) {
+        console.error("Business settings error:", error);
+    }
+}
+
+function applyBusinessSettingsToWebsite() {
+    const phoneDigits = String(businessSettings.phone || "").replace(/\D/g, "");
+    const whatsappDigits = String(businessSettings.whatsapp || businessSettings.phone || "").replace(/\D/g, "");
+
+    const headerPhoneLink = document.getElementById("headerPhoneLink");
+    const headerPhoneNumber = document.getElementById("headerPhoneNumber");
+    if (headerPhoneLink && phoneDigits) headerPhoneLink.href = "tel:+" + phoneDigits;
+    if (headerPhoneNumber) headerPhoneNumber.innerText = phoneDigits ? "+" + phoneDigits : "";
+
+    const contactPhoneLink = document.getElementById("contactPhoneLink");
+    const contactPhoneNumber = document.getElementById("contactPhoneNumber");
+    if (contactPhoneLink && phoneDigits) contactPhoneLink.href = "tel:+" + phoneDigits;
+    if (contactPhoneNumber) contactPhoneNumber.innerText = phoneDigits ? "+" + phoneDigits : "";
+
+    const contactWhatsAppLink = document.getElementById("contactWhatsAppLink");
+    const contactWhatsAppNumber = document.getElementById("contactWhatsAppNumber");
+    if (contactWhatsAppLink && whatsappDigits) contactWhatsAppLink.href = "https://wa.me/" + whatsappDigits;
+    if (contactWhatsAppNumber) contactWhatsAppNumber.innerText = whatsappDigits ? "+" + whatsappDigits : "";
+
+    const contactEmailLink = document.getElementById("contactEmailLink");
+    const contactEmail = document.getElementById("contactEmail");
+    if (contactEmailLink && businessSettings.email) contactEmailLink.href = "mailto:" + businessSettings.email;
+    if (contactEmail) contactEmail.innerText = businessSettings.email || "";
+
+    const contactAddress = document.getElementById("contactAddress");
+    if (contactAddress) contactAddress.innerText = businessSettings.address || "";
+
+    // Update common UPI text/inputs if present.
+    ["upiId", "upiID", "paymentUpiId", "displayUpiId"].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el && businessSettings.upi) {
+            if ("value" in el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) el.value = businessSettings.upi;
+            else el.innerText = businessSettings.upi;
+        }
+    });
+}
 
 const productsData = [{"id": 1, "name": "Halogen Bulb H4 12V 100/130 P43T 150% Extra Power CHROME", "brand": "ROBO", "partNo": "7101", "category": "—", "vehicle": "—", "voltage": "12V", "type": "H4", "price": 299}, {"id": 2, "name": "Halogen Bulb H4 24V 100/130 P43T 150% Extra Power CHROME", "brand": "ROBO", "partNo": "7101", "category": "—", "vehicle": "—", "voltage": "24V", "type": "H4", "price": 299}, {"id": 3, "name": "Halogen Bulb H4 12V 100/130 P43T 150% Extra Power SILVER", "brand": "ROBO", "partNo": "7107", "category": "—", "vehicle": "—", "voltage": "12V", "type": "H4", "price": 199}, {"id": 4, "name": "Halogen Bulb H4 24V 100/130 P43T 150% Extra Power SILVER", "brand": "ROBO", "partNo": "7107", "category": "—", "vehicle": "—", "voltage": "24V", "type": "H4", "price": 199}, {"id": 5, "name": "Halogen Bulb H7 100W", "brand": "ROBO", "partNo": "7111", "category": "—", "vehicle": "—", "voltage": "—", "type": "H7", "price": 149}];
 const adminProducts =
@@ -552,10 +641,18 @@ function removeFromCart(id){cart=cart.filter(x=>x.id!==id);updateCartUI();showTo
 function updateCartUI(){const badge=document.getElementById('cartCountBadge'),list=document.getElementById('cartItemsList'),empty=document.getElementById('emptyCartView'),footer=document.getElementById('cartFooter');const count=cart.reduce((s,x)=>s+x.qty,0);badge.innerText=count;if(!cart.length){list.innerHTML='';empty.classList.remove('hidden');footer.classList.add('hidden');return}empty.classList.add('hidden');footer.classList.remove('hidden');list.innerHTML=cart.map(i=>`<div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200"><div class="w-14 h-14 rounded-lg bg-amber-50 flex items-center justify-center"><i class="fa-solid fa-lightbulb text-amber-500 text-xl"></i></div><div class="flex-1 min-w-0"><h4 class="font-bold text-xs text-slate-800 line-clamp-2">${i.name}</h4><span class="text-[10px] text-slate-400 block mt-1">₹ ${i.price.toLocaleString('en-IN')} each</span><div class="flex items-center gap-2 mt-2"><button onclick="updateQty(${i.id},-1)" class="w-6 h-6 bg-slate-200 rounded">-</button><span class="text-xs font-bold">${i.qty}</span><button onclick="updateQty(${i.id},1)" class="w-6 h-6 bg-slate-200 rounded">+</button></div></div><div class="text-right"><b class="text-xs">₹ ${(i.price*i.qty).toLocaleString('en-IN')}</b><button onclick="removeFromCart(${i.id})" class="block ml-auto text-red-500 text-xs mt-2"><i class="fa-solid fa-trash-can"></i></button></div></div>`).join('');const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);document.getElementById('cartSubtotal').innerText=`₹ ${subtotal.toLocaleString('en-IN')}`}
 function openCartDrawer(){document.getElementById('cartDrawer').classList.remove('invisible');setTimeout(()=>{document.getElementById('cartBackdrop').classList.remove('opacity-0');document.getElementById('cartPanel').classList.remove('translate-x-full')},10)}
 function closeCartDrawer(){document.getElementById('cartBackdrop').classList.add('opacity-0');document.getElementById('cartPanel').classList.add('translate-x-full');setTimeout(()=>document.getElementById('cartDrawer').classList.add('invisible'),300)}
-const DEMO_UPI_ID =
-    (JSON.parse(localStorage.getItem("amberBusinessSettings")) || {}).upi
-    || "amberautoagencies@ybl";const businessSettings =
-    JSON.parse(localStorage.getItem("amberBusinessSettings")) || {};
+let businessSettings = {
+    businessName: "Amber Auto Agencies",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    address: "",
+    upi: ""
+};
+
+function getBusinessUpi() {
+    return (businessSettings.upi || "amberautoagencies@ybl").trim();
+}
 
 const businessPhone =
     (businessSettings.phone || "7758861213")
@@ -706,53 +803,180 @@ if (footerBusinessAddress) {
 }
 if (headerPhoneNumber) {
     headerPhoneNumber.innerText = "+91-" + businessPhone;
-};function openCheckoutModal(){if(!cart.length)return;closeCartDrawer();document.getElementById('checkoutCustomerStep').classList.remove('hidden');document.getElementById('checkoutPaymentStep').classList.add('hidden');document.getElementById('checkoutStepText').innerText='Step 1 of 2 — Customer & Delivery Details';const total=cart.reduce((s,i)=>s+i.price*i.qty,0);document.getElementById('checkoutTotalAmount').innerText=`₹ ${total.toLocaleString('en-IN')}`;document.getElementById('checkoutItemCount').innerText=`${cart.reduce((s,i)=>s+i.qty,0)} item(s)`;document.getElementById('checkoutOrderItems').innerHTML=cart.map(i=>`<div class="flex items-center justify-between gap-3 text-xs"><div><div class="font-semibold text-slate-800">${i.name}</div><div class="text-slate-500">Qty: ${i.qty} × ₹ ${i.price.toLocaleString('en-IN')}</div></div><b class="text-slate-900">₹ ${(i.price*i.qty).toLocaleString('en-IN')}</b></div>`).join('');document.getElementById('checkoutModal').classList.remove('hidden')}
+};function openCheckoutModal(){if(!cart.length)return;closeCartDrawer();document.getElementById('checkoutCustomerStep').classList.remove('hidden');document.getElementById('checkoutPaymentStep').classList.add('hidden');document.getElementById('checkoutSuccessStep').classList.add('hidden');document.getElementById('checkoutStepText').innerText='Step 1 of 2 — Customer & Delivery Details';const total=cart.reduce((s,i)=>s+i.price*i.qty,0);document.getElementById('checkoutTotalAmount').innerText=`₹ ${total.toLocaleString('en-IN')}`;document.getElementById('checkoutItemCount').innerText=`${cart.reduce((s,i)=>s+i.qty,0)} item(s)`;document.getElementById('checkoutOrderItems').innerHTML=cart.map(i=>`<div class="flex items-center justify-between gap-3 text-xs"><div><div class="font-semibold text-slate-800">${i.name}</div><div class="text-slate-500">Qty: ${i.qty} × ₹ ${i.price.toLocaleString('en-IN')}</div></div><b class="text-slate-900">₹ ${(i.price*i.qty).toLocaleString('en-IN')}</b></div>`).join('');document.getElementById('checkoutModal').classList.remove('hidden')}
 function validateCustomerDetails(){const fields=[['customerName','Full name'],['customerPhone','Mobile number'],['customerAddress','Delivery address'],['customerCity','City'],['customerState','State'],['customerPincode','PIN code']];for(const [id,label] of fields){const el=document.getElementById(id);if(!el.value.trim()){el.focus();showToast(`Please enter ${label}`);return false}}const phone=document.getElementById('customerPhone').value.replace(/\D/g,'');if(!/^[6-9]\d{9}$/.test(phone)){document.getElementById('customerPhone').focus();showToast('Please enter a valid 10-digit mobile number');return false}const pin=document.getElementById('customerPincode').value.replace(/\D/g,'');if(!/^\d{6}$/.test(pin)){document.getElementById('customerPincode').focus();showToast('Please enter a valid 6-digit PIN code');return false}const email=document.getElementById('customerEmail').value.trim();if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById('customerEmail').focus();showToast('Please enter a valid email address');return false}return true}
-function continueToPayment(){if(!validateCustomerDetails())return;const total=cart.reduce((s,i)=>s+i.price*i.qty,0);const name=document.getElementById('customerName').value.trim();const address=[document.getElementById('customerAddress').value.trim(),document.getElementById('customerCity').value.trim(),document.getElementById('customerState').value.trim(),document.getElementById('customerPincode').value.trim()].join(', ');document.getElementById('checkoutCustomerSummary').innerText=`${name} • ${document.getElementById('customerPhone').value.trim()}`;document.getElementById('checkoutAddressSummary').innerText=address;document.getElementById('checkoutPaymentTotal').innerText=`₹ ${total.toLocaleString('en-IN')}`;const upi=`upi://pay?pa=${encodeURIComponent(DEMO_UPI_ID)}&pn=Amber%20Auto%20Agencies&am=${total}&cu=INR`;document.getElementById('upiQrCodeImg').src=`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upi)}`;document.getElementById('upiIdText').innerText=DEMO_UPI_ID;const email=document.getElementById('customerEmail').value.trim();const items=cart.map(i=>`${i.name} x ${i.qty}`).join(', ');const message=`Hello Amber Auto Agencies, I have completed payment and want to place this order.\n\nCustomer: ${name}\nMobile: ${document.getElementById('customerPhone').value.trim()}\nEmail: ${email||'Not provided'}\nDelivery Address: ${address}\n\nProducts: ${items}\nTotal: ₹${total.toLocaleString('en-IN')}\nUPI ID paid to: ${DEMO_UPI_ID}`;const businessSettings =
-    JSON.parse(localStorage.getItem("amberBusinessSettings")) || {};
+function continueToPayment(){
+ if(!validateCustomerDetails())return;
 
-const whatsappNumber =
-    (businessSettings.whatsapp || "917758861213")
-    .replace(/\D/g, "");
+ const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+ const name=document.getElementById('customerName').value.trim();
+ const address=[
+   document.getElementById('customerAddress').value.trim(),
+   document.getElementById('customerCity').value.trim(),
+   document.getElementById('customerState').value.trim(),
+   document.getElementById('customerPincode').value.trim()
+ ].join(', ');
 
-document.getElementById('whatsappCheckout').href =
-    `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;const order={
-    id:Date.now(),
-    date:new Date().toLocaleString('en-IN'),
-    status:'Pending',
-    customer:{
-        name:name,
-        mobile:document.getElementById('customerPhone').value.trim(),
-        email:email,
-        address:document.getElementById('customerAddress').value.trim(),
-        city:document.getElementById('customerCity').value.trim(),
-        state:document.getElementById('customerState').value.trim(),
-        pin:document.getElementById('customerPincode').value.trim()
-    },
-    items:cart.map(function(i){
-        return {
-            name:i.name,
-            price:Number(i.price),
-            qty:Number(i.qty)
-        };
-    }),
-    total:total
-};
+ document.getElementById('checkoutCustomerSummary').innerText=
+   `${name} • ${document.getElementById('customerPhone').value.trim()}`;
+ document.getElementById('checkoutAddressSummary').innerText=address;
+ document.getElementById('checkoutPaymentTotal').innerText=
+   `₹ ${total.toLocaleString('en-IN')}`;
 
-const existingOrders=
-    JSON.parse(localStorage.getItem('amberOrders')) || [];
+ const upi=`upi://pay?pa=${encodeURIComponent(getBusinessUpi())}&pn=Amber%20Auto%20Agencies&am=${total}&cu=INR`;
+ document.getElementById('upiQrCodeImg').src=
+   `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upi)}`;
+ document.getElementById('upiIdText').innerText=getBusinessUpi();
 
-existingOrders.push(order);
+ document.getElementById('checkoutCustomerStep').classList.add('hidden');
+ document.getElementById('checkoutPaymentStep').classList.remove('hidden');
+ document.getElementById('checkoutStepText').innerText='Step 2 of 2 — Make Payment';
+}
 
-localStorage.setItem(
-    'amberOrders',
-    JSON.stringify(existingOrders)
-);document.getElementById('checkoutCustomerStep').classList.add('hidden');document.getElementById('checkoutPaymentStep').classList.remove('hidden');document.getElementById('checkoutStepText').innerText='Step 2 of 2 — Make Payment'}
+function generateOrderNumber(){
+ const now=new Date();
+ const datePart=
+   now.getFullYear().toString()+
+   String(now.getMonth()+1).padStart(2,'0')+
+   String(now.getDate()).padStart(2,'0');
+ const timePart=
+   String(now.getHours()).padStart(2,'0')+
+   String(now.getMinutes()).padStart(2,'0')+
+   String(now.getSeconds()).padStart(2,'0');
+ const randomPart=Math.floor(100+Math.random()*900);
+ return `AAA-${datePart}-${timePart}${randomPart}`;
+}
+
+async function submitPaidOrder(){
+ if(!validateCustomerDetails())return;
+ if(!cart.length){
+   showToast('Your cart is empty');
+   return;
+ }
+
+ const button=document.getElementById('placeOrderButton');
+ button.disabled=true;
+ const originalButtonHtml=button.innerHTML;
+ button.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Saving Order...';
+
+ try{
+   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+   const orderNumber=generateOrderNumber();
+
+   const customerName=document.getElementById('customerName').value.trim();
+   const customerPhone=document.getElementById('customerPhone').value.trim();
+   const customerEmail=document.getElementById('customerEmail').value.trim();
+   const customerAddress=document.getElementById('customerAddress').value.trim();
+   const customerCity=document.getElementById('customerCity').value.trim();
+   const customerState=document.getElementById('customerState').value.trim();
+   const customerPincode=document.getElementById('customerPincode').value.trim();
+   const customerNotes=document.getElementById('customerNotes')?.value.trim() || '';
+   const paymentReference=document.getElementById('paymentReference')?.value.trim() || '';
+
+   const orderItems=cart.map(i=>({
+     product_id:i.id,
+     name:i.name,
+     part_number:i.partNo || '',
+     price:Number(i.price) || 0,
+     quantity:Number(i.qty) || 1,
+     line_total:(Number(i.price) || 0)*(Number(i.qty) || 1)
+   }));
+
+   const orderData={
+     customer_name:customerName,
+     customer_phone:customerPhone,
+     customer_email:customerEmail || null,
+     customer_address:customerAddress,
+     customer_city:customerCity,
+     customer_state:customerState,
+     customer_pincode:customerPincode,
+     items:orderItems,
+     total_amount:total,
+     payment_method:'UPI',
+     payment_status:'Pending Verification',
+     order_status:'Pending',
+     order_number:orderNumber,
+     customer_notes:customerNotes || null,
+     payment_reference:paymentReference || null,
+     tracking_number:null
+   };
+
+   const { error }=await supabaseClient
+     .from('Orders')
+     .insert([orderData]);
+
+   if(error){
+     console.error('Could not save order:',error);
+     showToast('Order could not be saved. Please try again.');
+     return;
+   }
+
+   const address=[
+     customerAddress,
+     customerCity,
+     customerState,
+     customerPincode
+   ].join(', ');
+
+   const itemLines=cart.map(i=>
+     `${i.name} (${i.partNo || 'No Part No.'}) x ${i.qty} = ₹${(i.price*i.qty).toLocaleString('en-IN')}`
+   ).join('\n');
+
+   const message=
+`Hello Amber Auto Agencies, I have placed an order after making UPI payment.
+
+Order No: ${orderNumber}
+Customer: ${customerName}
+Mobile: ${customerPhone}
+Email: ${customerEmail || 'Not provided'}
+Delivery Address: ${address}
+
+Products:
+${itemLines}
+
+Total: ₹${total.toLocaleString('en-IN')}
+UPI ID paid to: ${getBusinessUpi()}
+Payment Reference: ${paymentReference || 'Not provided'}
+
+Please verify my payment and confirm the order.`;
+
+   const whatsappNumber=
+     (businessSettings.whatsapp || "917758861213").replace(/\D/g,'');
+
+   const whatsappUrl=
+     `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+   cart=[];
+   updateCartUI();
+   document.getElementById('checkoutPaymentStep').classList.add('hidden');
+   document.getElementById('checkoutSuccessStep').classList.remove('hidden');
+   document.getElementById('checkoutStepText').innerText='Order Complete';
+   document.getElementById('successOrderNumber').innerText=orderNumber;
+   document.getElementById('successOrderTotal').innerText=`Order Total: ₹${total.toLocaleString('en-IN')}`;
+   document.getElementById('successWhatsAppButton').href=whatsappUrl;
+   showToast(`Order ${orderNumber} saved successfully`);
+ }catch(err){
+   console.error('Unexpected order error:',err);
+   showToast('Something went wrong. Please try again.');
+ }finally{
+   button.disabled=false;
+   button.innerHTML=originalButtonHtml;
+ }
+}
+function finishSuccessfulOrder(){
+ document.getElementById('checkoutSuccessStep').classList.add('hidden');
+ closeCheckoutModal();
+}
 function backToCustomerDetails(){document.getElementById('checkoutPaymentStep').classList.add('hidden');document.getElementById('checkoutCustomerStep').classList.remove('hidden');document.getElementById('checkoutStepText').innerText='Step 1 of 2 — Customer & Delivery Details'}
 function closeCheckoutModal(){document.getElementById('checkoutModal').classList.add('hidden')}
-function copyUpiId(){navigator.clipboard?.writeText(DEMO_UPI_ID);showToast('UPI ID copied')}
+function copyUpiId(){navigator.clipboard?.writeText(getBusinessUpi());showToast('UPI ID copied')}
 function showToast(message){const t=document.getElementById('toast');document.getElementById('toastMessage').innerText=message;t.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.add('hidden'),2500)}
 document.getElementById('currentYear').innerText=new Date().getFullYear();renderProducts(productsData);updateCartUI();
+
+document.addEventListener("DOMContentLoaded", function() {
+    loadBusinessSettingsFromSupabase();
+});
+
 </script>
 </body>
 </html>
