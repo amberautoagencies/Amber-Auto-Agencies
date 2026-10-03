@@ -8,6 +8,8 @@
 
 <title>Amber Auto Agencies - Orders</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 
 * {
@@ -223,7 +225,60 @@ body {
     font-size: 14px;
 }
 
-/* EMPTY */
+
+.admin-controls {
+    margin-top: 18px;
+    padding-top: 15px;
+    border-top: 1px solid #e4e7ec;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.control-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+.control-group select,
+.control-group input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+}
+.order-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.save-btn, .delete-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.save-btn { background: #f59e0b; color: white; }
+.delete-btn { background: #d92d20; color: white; }
+.payment-line {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #fffaeb;
+    font-size: 14px;
+    color: #475467;
+}
+.loading { text-align:center; padding:40px 10px; color:#667085; }
+
+@media (max-width: 700px) {
+    .admin-controls { grid-template-columns: 1fr; }
+}
+
+ /* EMPTY */
 
 .empty {
     text-align: center;
@@ -333,280 +388,225 @@ body {
 
 
 <script>
-
-/* DASHBOARD */
+const SUPABASE_URL = "https://vkgvexnaoqgonnmtdlkl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uAdyfJX0gFlQtpbPutxjHw_acg8RzOF";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function goDashboard() {
-
-    window.location.href =
-        "dashboard.html";
-
+    window.location.href = "dashboard.html";
 }
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
-/* LOAD ORDERS */
+function formatDate(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return escapeHtml(value);
+    return d.toLocaleString("en-IN");
+}
 
-function loadOrders() {
+function normaliseItems(items) {
+    if (Array.isArray(items)) return items;
+    if (typeof items === "string") {
+        try {
+            const parsed = JSON.parse(items);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (_) {
+            return [];
+        }
+    }
+    return [];
+}
 
-    var orders =
-        JSON.parse(
-            localStorage.getItem("amberOrders")
-        ) || [];
+async function requireAdminSession() {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error || !session) {
+        window.location.href = "index.html";
+        return false;
+    }
+    return true;
+}
 
+async function loadOrders() {
+    const ordersList = document.getElementById("ordersList");
+    ordersList.innerHTML = '<div class="loading">Loading orders...</div>';
 
-    var ordersList =
-        document.getElementById("ordersList");
+    if (!(await requireAdminSession())) return;
 
+    const { data: orders, error } = await supabaseClient
+        .from("Orders")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (orders.length === 0) {
-
+    if (error) {
+        console.error("Orders load error:", error);
         ordersList.innerHTML = `
-
             <div class="empty">
-
-                No orders received yet.
-
-                <br><br>
-
-                Customer orders will appear here.
-
-            </div>
-
-        `;
-
+                Could not load orders.<br><br>
+                ${escapeHtml(error.message)}
+            </div>`;
         return;
-
     }
 
+    if (!orders || orders.length === 0) {
+        ordersList.innerHTML = `
+            <div class="empty">
+                No orders received yet.<br><br>
+                Customer orders will appear here.
+            </div>`;
+        return;
+    }
 
     ordersList.innerHTML = "";
 
+    orders.forEach(order => {
+        const items = normaliseItems(order.items);
+        const card = document.createElement("div");
+        card.className = "order-card";
 
-    orders.forEach(function(order) {
+        const productsHtml = items.length ? items.map(item => {
+            const qty = Number(item.qty ?? item.quantity ?? 1);
+            const price = Number(item.price || 0);
+            const code = item.code ? ` (${escapeHtml(item.code)})` : "";
+            return `
+                <div class="product-item">
+                    <div>
+                        <div class="product-name">${escapeHtml(item.name || "Product")}${code}</div>
+                        <div class="product-details">Qty: ${qty} × ₹${price.toLocaleString("en-IN")}</div>
+                    </div>
+                    <div>₹${(qty * price).toLocaleString("en-IN")}</div>
+                </div>`;
+        }).join("") : '<div class="product-item"><div>No product details available.</div></div>';
 
-        var orderCard =
-            document.createElement("div");
+        const orderId = String(order.id);
+        const safeDomId = orderId.replace(/[^a-zA-Z0-9_-]/g, "_");
+        const orderStatus = order.order_status || "Pending";
+        const paymentStatus = order.payment_status || "Pending Verification";
 
-
-        orderCard.className =
-            "order-card";
-
-
-        orderCard.innerHTML = `
-
+        card.innerHTML = `
             <div class="order-header">
-
-                <div class="order-id">
-
-                    Order #${order.id}
-
-                </div>
-
-                <div class="order-date">
-
-                    ${order.date || ""}
-
-                </div>
-
+                <div class="order-id">Order #${escapeHtml(order.order_number || order.id)}</div>
+                <div class="order-date">${formatDate(order.created_at)}</div>
             </div>
-
 
             <div class="customer-box">
-
-                <h4>
-                    Customer Details
-                </h4>
-
-                <p>
-                    <b>Name:</b>
-                    ${order.customer?.name || ""}
-                </p>
-
-                <p>
-                    <b>Mobile:</b>
-                    ${order.customer?.mobile || ""}
-                </p>
-
-                <p>
-                    <b>Email:</b>
-                    ${order.customer?.email || "Not provided"}
-                </p>
-
-                <p>
-                    <b>Address:</b>
-                    ${order.customer?.address || ""}
-                </p>
-
-                <p>
-                    <b>City:</b>
-                    ${order.customer?.city || ""}
-                </p>
-
-                <p>
-                    <b>State:</b>
-                    ${order.customer?.state || ""}
-                </p>
-
-                <p>
-                    <b>PIN Code:</b>
-                    ${order.customer?.pin || ""}
-                </p>
-
+                <h4>Customer Details</h4>
+                <p><b>Name:</b> ${escapeHtml(order.customer_name || "")}</p>
+                <p><b>Mobile:</b> ${escapeHtml(order.customer_phone || "")}</p>
+                <p><b>Email:</b> ${escapeHtml(order.customer_email || "Not provided")}</p>
+                <p><b>Address:</b> ${escapeHtml(order.customer_address || "")}</p>
+                <p><b>City:</b> ${escapeHtml(order.customer_city || "")}</p>
+                <p><b>State:</b> ${escapeHtml(order.customer_state || "")}</p>
+                <p><b>PIN Code:</b> ${escapeHtml(order.customer_pincode || "")}</p>
+                ${order.customer_notes ? `<p><b>Notes:</b> ${escapeHtml(order.customer_notes)}</p>` : ""}
             </div>
 
-
-            <div class="products-title">
-
-                Products
-
-            </div>
-
-
-            <div>
-
-                ${(order.items || []).map(function(item) {
-
-                    return `
-
-                        <div class="product-item">
-
-                            <div>
-
-                                <div class="product-name">
-
-                                    ${item.name}
-
-                                </div>
-
-                                <div class="product-details">
-
-                                    Qty: ${item.qty}
-                                    × ₹${item.price}
-
-                                </div>
-
-                            </div>
-
-                            <div>
-
-                                ₹${(
-                                    Number(item.price) *
-                                    Number(item.qty)
-                                ).toLocaleString("en-IN")}
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }).join("")}
-
-            </div>
-
+            <div class="products-title">Products</div>
+            <div>${productsHtml}</div>
 
             <div class="order-total">
-
-                <span>
-                    Order Total
-                </span>
-
-                <span>
-                    ₹${Number(order.total || 0).toLocaleString("en-IN")}
-                </span>
-
+                <span>Order Total</span>
+                <span>₹${Number(order.total_amount || 0).toLocaleString("en-IN")}</span>
             </div>
 
-
-            <div class="status-box">
-
-                <label>
-                    Status:
-                </label>
-
-                <select
-                    onchange="updateOrderStatus('${order.id}', this.value)">
-
-                    <option value="Pending"
-                        ${order.status === "Pending" ? "selected" : ""}>
-                        Pending
-                    </option>
-
-                    <option value="Paid"
-                        ${order.status === "Paid" ? "selected" : ""}>
-                        Paid
-                    </option>
-
-                    <option value="Processing"
-                        ${order.status === "Processing" ? "selected" : ""}>
-                        Processing
-                    </option>
-
-                    <option value="Shipped"
-                        ${order.status === "Shipped" ? "selected" : ""}>
-                        Shipped
-                    </option>
-
-                    <option value="Delivered"
-                        ${order.status === "Delivered" ? "selected" : ""}>
-                        Delivered
-                    </option>
-
-                </select>
-
+            <div class="payment-line">
+                <b>Payment Method:</b> ${escapeHtml(order.payment_method || "UPI")}
+                &nbsp; | &nbsp;
+                <b>Reference:</b> ${escapeHtml(order.payment_reference || "Not provided")}
             </div>
 
+            <div class="admin-controls">
+                <div class="control-group">
+                    <label>Payment Status</label>
+                    <select id="payment_${safeDomId}">
+                        ${["Pending Verification","Paid","Failed","Refunded"].map(s =>
+                            `<option value="${s}" ${paymentStatus === s ? "selected" : ""}>${s}</option>`
+                        ).join("")}
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Order Status</label>
+                    <select id="status_${safeDomId}">
+                        ${["Pending","Confirmed","Processing","Shipped","Delivered","Cancelled"].map(s =>
+                            `<option value="${s}" ${orderStatus === s ? "selected" : ""}>${s}</option>`
+                        ).join("")}
+                    </select>
+                </div>
+
+                <div class="control-group" style="grid-column:1/-1">
+                    <label>Tracking Number</label>
+                    <input id="tracking_${safeDomId}" value="${escapeHtml(order.tracking_number || "")}" placeholder="Enter tracking number">
+                </div>
+            </div>
+
+            <div class="order-actions">
+                <button class="save-btn" onclick='saveOrder(${JSON.stringify(orderId)}, ${JSON.stringify(safeDomId)})'>
+                    Save Changes
+                </button>
+                <button class="delete-btn" onclick='deleteOrder(${JSON.stringify(orderId)})'>
+                    Delete Order
+                </button>
+            </div>
         `;
 
-
-        ordersList.appendChild(orderCard);
-
+        ordersList.appendChild(card);
     });
-
 }
 
+async function saveOrder(id, safeDomId) {
+    if (!(await requireAdminSession())) return;
 
-/* UPDATE ORDER STATUS */
+    const payment_status = document.getElementById("payment_" + safeDomId).value;
+    const order_status = document.getElementById("status_" + safeDomId).value;
+    const tracking_number = document.getElementById("tracking_" + safeDomId).value.trim();
 
-function updateOrderStatus(id, status) {
+    const { error } = await supabaseClient
+        .from("Orders")
+        .update({
+            payment_status,
+            order_status,
+            tracking_number: tracking_number || null
+        })
+        .eq("id", id);
 
-    var orders =
-        JSON.parse(
-            localStorage.getItem("amberOrders")
-        ) || [];
+    if (error) {
+        console.error("Order update error:", error);
+        alert("Could not update order: " + error.message);
+        return;
+    }
 
-
-    orders =
-        orders.map(function(order) {
-
-            if (String(order.id) === String(id)) {
-
-                order.status = status;
-
-            }
-
-            return order;
-
-        });
-
-
-    localStorage.setItem(
-        "amberOrders",
-        JSON.stringify(orders)
-    );
-
-
-    alert(
-        "Order status updated to " + status
-    );
-
+    alert("Order updated successfully.");
+    await loadOrders();
 }
 
+async function deleteOrder(id) {
+    if (!(await requireAdminSession())) return;
+    if (!confirm("Delete this order permanently?")) return;
 
-/* LOAD */
+    const { error } = await supabaseClient
+        .from("Orders")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error("Order delete error:", error);
+        alert("Could not delete order: " + error.message);
+        return;
+    }
+
+    alert("Order deleted successfully.");
+    await loadOrders();
+}
 
 loadOrders();
-
 </script>
 
 </body>
