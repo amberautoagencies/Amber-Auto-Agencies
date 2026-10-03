@@ -386,54 +386,77 @@ async function loadDashboard() {
 
 
     /* -------------------------
-       ORDERS - CURRENT SYSTEM
+       ORDERS FROM SUPABASE
     ------------------------- */
 
-    const orders =
-        JSON.parse(
-            localStorage.getItem(
-                "amberOrders"
-            )
-        ) || [];
+    const {
+        data: orders,
+        error: orderError
+    } = await supabaseClient
+        .from("Orders")
+        .select("id, order_status, payment_status, total_amount");
 
 
-    document.getElementById(
-        "totalOrders"
-    ).innerText =
-        orders.length;
+    if (orderError) {
 
-
-    const pending =
-        orders.filter(function(order) {
-
-            return order.status === "Pending";
-
-        });
-
-
-    document.getElementById(
-        "pendingOrders"
-    ).innerText =
-        pending.length;
-
-
-    const sales =
-        orders.reduce(
-            function(total, order) {
-
-                return total +
-                    Number(order.total || 0);
-
-            },
-            0
+        console.error(
+            "Order loading error:",
+            orderError
         );
 
+        document.getElementById("totalOrders").innerText = "—";
+        document.getElementById("pendingOrders").innerText = "—";
+        document.getElementById("totalSales").innerText = "—";
 
-    document.getElementById(
-        "totalSales"
-    ).innerText =
-        "₹" +
-        sales.toLocaleString("en-IN");
+    } else {
+
+        document.getElementById(
+            "totalOrders"
+        ).innerText =
+            orders.length;
+
+
+        const pending =
+            orders.filter(function(order) {
+
+                return order.order_status === "Pending";
+
+            });
+
+
+        document.getElementById(
+            "pendingOrders"
+        ).innerText =
+            pending.length;
+
+
+        /* Count sales only after payment is verified as Paid */
+
+        const sales =
+            orders
+            .filter(function(order) {
+
+                return order.payment_status === "Paid";
+
+            })
+            .reduce(
+                function(total, order) {
+
+                    return total +
+                        Number(order.total_amount || 0);
+
+                },
+                0
+            );
+
+
+        document.getElementById(
+            "totalSales"
+        ).innerText =
+            "₹" +
+            sales.toLocaleString("en-IN");
+
+    }
 
 }
 
