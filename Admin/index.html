@@ -6,6 +6,8 @@
 
 <title>Amber Auto Agencies - Admin Login</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 * {
     box-sizing: border-box;
@@ -82,6 +84,11 @@ button:hover {
     background: #d97706;
 }
 
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 #error {
     display: none;
     color: #d92d20;
@@ -104,12 +111,13 @@ button:hover {
 
     <form onsubmit="login(event)">
 
-        <label>Username</label>
+        <label>Email Address</label>
 
         <input
-            type="text"
-            id="username"
-            placeholder="Enter username"
+            type="email"
+            id="email"
+            placeholder="Enter admin email"
+            autocomplete="username"
             required
         >
 
@@ -119,15 +127,16 @@ button:hover {
             type="password"
             id="password"
             placeholder="Enter password"
+            autocomplete="current-password"
             required
         >
 
-        <button type="submit">
+        <button type="submit" id="loginButton">
             Login
         </button>
 
         <div id="error">
-            Incorrect username or password.
+            Unable to login.
         </div>
 
     </form>
@@ -136,31 +145,75 @@ button:hover {
 
 <script>
 
-function login(event) {
+const SUPABASE_URL = "https://vkgvexnaoqgonnmtdlkl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uAdyfJX0gFlQtpbPutxjHw_acg8RzOF";
+
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+async function login(event) {
 
     event.preventDefault();
 
-    var username =
-        document.getElementById("username").value.trim();
+    const email =
+        document.getElementById("email").value.trim();
 
-    var password =
+    const password =
         document.getElementById("password").value;
 
-if (username === "AmberAutoAgencies" && password === "AmBeR@71118552") {
+    const errorBox =
+        document.getElementById("error");
 
-    sessionStorage.setItem("amberAdminLoggedIn", "true");
+    const loginButton =
+        document.getElementById("loginButton");
 
-    alert("Login successful!");
+    errorBox.style.display = "none";
 
-    window.location.href = "https://amberauto.in/Admin/dashboard.html";
+    loginButton.disabled = true;
+    loginButton.innerText = "Logging in...";
 
-} else {
+    const { data, error } =
+        await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
 
-        document.getElementById("error").style.display = "block";
+    if (error) {
 
+        console.error("Login error:", error);
+
+        errorBox.innerText =
+            "Incorrect email or password.";
+
+        errorBox.style.display = "block";
+
+        loginButton.disabled = false;
+        loginButton.innerText = "Login";
+
+        return;
     }
 
+    if (data.user) {
+
+        window.location.href = "dashboard.html";
+
+    }
 }
+
+async function checkExistingLogin() {
+
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (session) {
+        window.location.href = "dashboard.html";
+    }
+}
+
+checkExistingLogin();
 
 </script>
 

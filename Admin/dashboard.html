@@ -10,16 +10,8 @@ content="width=device-width, initial-scale=1.0">
 
 <title>Amber Auto Agencies - Admin Dashboard</title>
 
-<!-- LOGIN PROTECTION -->
-<script>
-
-if (sessionStorage.getItem("amberAdminLoggedIn") !== "true") {
-
-    window.location.href = "index.html";
-
-}
-
-</script>
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
@@ -221,11 +213,9 @@ body {
 
         <div class="card">
 
-            <h3>
-                Total Products
-            </h3>
+            <h3>Total Products</h3>
 
-            <div class="number">
+            <div class="number" id="totalProducts">
                 0
             </div>
 
@@ -233,11 +223,9 @@ body {
 
         <div class="card">
 
-            <h3>
-                Total Orders
-            </h3>
+            <h3>Total Orders</h3>
 
-            <div class="number">
+            <div class="number" id="totalOrders">
                 0
             </div>
 
@@ -245,11 +233,9 @@ body {
 
         <div class="card">
 
-            <h3>
-                Pending Orders
-            </h3>
+            <h3>Pending Orders</h3>
 
-            <div class="number">
+            <div class="number" id="pendingOrders">
                 0
             </div>
 
@@ -257,11 +243,9 @@ body {
 
         <div class="card">
 
-            <h3>
-                Total Sales
-            </h3>
+            <h3>Total Sales</h3>
 
-            <div class="number">
+            <div class="number" id="totalSales">
                 ₹0
             </div>
 
@@ -273,15 +257,11 @@ body {
 
     <div class="menu">
 
-        <!-- PRODUCTS -->
-
         <div
             class="menu-item"
             onclick="window.location.href='products.html'">
 
-            <h3>
-                📦 Products
-            </h3>
+            <h3>📦 Products</h3>
 
             <p>
                 Add, edit and manage
@@ -290,15 +270,11 @@ body {
 
         </div>
 
-        <!-- ORDERS -->
-
         <div
             class="menu-item"
             onclick="window.location.href='orders.html'">
 
-            <h3>
-                🛒 Orders
-            </h3>
+            <h3>🛒 Orders</h3>
 
             <p>
                 View and manage
@@ -307,15 +283,11 @@ body {
 
         </div>
 
-        <!-- SETTINGS -->
-
         <div
             class="menu-item"
             onclick="window.location.href='settings.html'">
 
-            <h3>
-                ⚙️ Business Settings
-            </h3>
+            <h3>⚙️ Business Settings</h3>
 
             <p>
                 Manage your business
@@ -331,39 +303,107 @@ body {
 
 <script>
 
-function loadDashboard() {
+/* =========================
+   SUPABASE CONNECTION
+========================= */
 
-    /* GET PRODUCTS */
+const SUPABASE_URL =
+    "https://vkgvexnaoqgonnmtdlkl.supabase.co";
 
-    const products =
-        JSON.parse(
-            localStorage.getItem("amberProducts")
-        ) || [];
+const SUPABASE_KEY =
+    "sb_publishable_uAdyfJX0gFlQtpbPutxjHw_acg8RzOF";
+
+const supabaseClient =
+    supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
 
 
-    /* GET ORDERS */
+/* =========================
+   CHECK ADMIN LOGIN
+========================= */
+
+async function checkAdminLogin() {
+
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+
+        window.location.href =
+            "index.html";
+
+        return false;
+    }
+
+    return true;
+}
+
+
+/* =========================
+   LOAD DASHBOARD
+========================= */
+
+async function loadDashboard() {
+
+    const loggedIn =
+        await checkAdminLogin();
+
+    if (!loggedIn) {
+        return;
+    }
+
+
+    /* -------------------------
+       PRODUCTS FROM SUPABASE
+    ------------------------- */
+
+    const {
+        data: products,
+        error: productError
+    } = await supabaseClient
+        .from("Products")
+        .select("id");
+
+
+    if (productError) {
+
+        console.error(
+            "Product loading error:",
+            productError
+        );
+
+    } else {
+
+        document.getElementById(
+            "totalProducts"
+        ).innerText =
+            products.length;
+
+    }
+
+
+    /* -------------------------
+       ORDERS - CURRENT SYSTEM
+    ------------------------- */
 
     const orders =
         JSON.parse(
-            localStorage.getItem("amberOrders")
+            localStorage.getItem(
+                "amberOrders"
+            )
         ) || [];
 
 
-    /* TOTAL PRODUCTS */
-
-    document.querySelectorAll(".number")[0].innerText =
-        products.length;
-
-
-    /* TOTAL ORDERS */
-
-    document.querySelectorAll(".number")[1].innerText =
+    document.getElementById(
+        "totalOrders"
+    ).innerText =
         orders.length;
 
 
-    /* PENDING ORDERS */
-
-    const pendingOrders =
+    const pending =
         orders.filter(function(order) {
 
             return order.status === "Pending";
@@ -371,41 +411,49 @@ function loadDashboard() {
         });
 
 
-    document.querySelectorAll(".number")[2].innerText =
-        pendingOrders.length;
+    document.getElementById(
+        "pendingOrders"
+    ).innerText =
+        pending.length;
 
 
-    /* TOTAL SALES */
+    const sales =
+        orders.reduce(
+            function(total, order) {
 
-    const totalSales =
-        orders.reduce(function(total, order) {
+                return total +
+                    Number(order.total || 0);
 
-            return total + Number(order.total || 0);
+            },
+            0
+        );
 
-        }, 0);
 
-
-    document.querySelectorAll(".number")[3].innerText =
-        "₹" + totalSales.toLocaleString("en-IN");
+    document.getElementById(
+        "totalSales"
+    ).innerText =
+        "₹" +
+        sales.toLocaleString("en-IN");
 
 }
 
 
-/* LOGOUT */
+/* =========================
+   LOGOUT
+========================= */
 
-function logout() {
+async function logout() {
 
-    sessionStorage.removeItem(
-        "amberAdminLoggedIn"
-    );
+    await supabaseClient.auth.signOut();
 
     window.location.href =
         "index.html";
-
 }
 
 
-/* LOAD DASHBOARD */
+/* =========================
+   START DASHBOARD
+========================= */
 
 loadDashboard();
 
