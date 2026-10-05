@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Amber Auto Agencies - Products</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #101828;
+}
+
+.header {
+    background: #101828;
+    color: white;
+    padding: 18px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.back {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+}
+
+.page-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.page-title h2 {
+    margin: 0;
+}
+
+.add-btn {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 7px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-btn:hover {
+    background: #d97706;
+}
+
+.form-box {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    display: none;
+}
+
+.form-box h3 {
+    margin-top: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+input,
+textarea,
+select {
+    padding: 11px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #f59e0b;
+}
+
+.save-btn {
+    margin-top: 20px;
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.save-btn:hover {
+    background: #d97706;
+}
+
+.cancel-btn {
+    margin-top: 20px;
+    margin-left: 10px;
+    background: #667085;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.products-box {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+.product-card {
+    border-bottom: 1px solid #e4e7ec;
+    padding: 18px 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.product-card:last-child {
+    border-bottom: none;
+}
+
+.product-info h3 {
+    margin: 0 0 7px;
+}
+
+.product-info p {
+    margin: 4px 0;
+    color: #667085;
+}
+
+.product-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.product-actions button {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.edit-btn {
+    background: #e4e7ec;
+    color: #101828;
+}
+
+.edit-btn:hover {
+    background: #d0d5dd;
+}
+
+.delete-btn {
+    background: #fee4e2;
+    color: #b42318;
+}
+
+.delete-btn:hover {
+    background: #fecdca;
+}
+
+.stock-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.stock-summary-card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+.stock-summary-card .label {
+    font-size: 13px;
+    color: #667085;
+    font-weight: bold;
+}
+.stock-summary-card .value {
+    margin-top: 5px;
+    font-size: 24px;
+    font-weight: bold;
+}
+.stock-ok { color: #067647; }
+.stock-low { color: #b54708; }
+.stock-out { color: #b42318; }
+
+.stock-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+}
+.stock-badge.low {
+    background: #fef0c7;
+    color: #b54708;
+}
+.stock-badge.out {
+    background: #fee4e2;
+    color: #b42318;
+}
+.product-card.low-stock {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    padding-left: 14px;
+}
+.product-card.out-stock {
+    background: #fff5f5;
+    border-left: 4px solid #d92d20;
+    padding-left: 14px;
+}
+
+.empty {
+    text-align: center;
+    padding: 40px 10px;
+    color: #667085;
+}
+
+@media (max-width: 700px) {
+    .stock-summary {
+        grid-template-columns: 1fr;
+    }
+
+
+    .header h1 {
+        font-size: 17px;
+    }
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    .page-title {
+        align-items: flex-start;
+        gap: 15px;
+        flex-direction: column;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full {
+        grid-column: auto;
+    }
+
+    .product-card {
+        flex-direction: column;
+    }
+
+    .product-actions {
+        align-items: flex-start;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+    <h1>Amber Auto Agencies — Products</h1>
+
+    <button class="back" onclick="goDashboard()">
+        ← Dashboard
+    </button>
+
+</div>
+
+
+<div class="container">
+
+    <div class="stock-summary">
+        <div class="stock-summary-card">
+            <div class="label">Low Stock Threshold</div>
+            <div class="value" id="stockThresholdValue">5</div>
+        </div>
+        <div class="stock-summary-card">
+            <div class="label">Low Stock Products</div>
+            <div class="value stock-low" id="lowStockCount">0</div>
+        </div>
+        <div class="stock-summary-card">
+            <div class="label">Out of Stock Products</div>
+            <div class="value stock-out" id="outOfStockCount">0</div>
+        </div>
+    </div>
+
+    <div class="page-title">
+
+        <h2>Product Management</h2>
+
+        <button class="add-btn" onclick="showForm()">
+            + Add Product
+        </button>
+
+    </div>
+
+
+    <div class="form-box" id="formBox">
+
+        <input type="hidden" id="editProductId">
+
+        <h3 id="formTitle">Add New Product</h3>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label>Product Name</label>
+
+                <input
+                    type="text"
+                    id="productName"
+                    placeholder="Example: MDS H4 Halogen Bulb">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Part Number</label>
+
+                <input
+                    type="text"
+                    id="partNumber"
+                    placeholder="Example: HN2711">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Price (₹)</label>
+
+                <input
+                    type="number"
+                    id="price"
+                    placeholder="Example: 620">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>MRP (₹)</label>
+
+                <input
+                    type="number"
+                    id="mrp"
+                    placeholder="Example: 700">
+
+            </div>
+
+            <div class="form-group">
+                <label>GST Rate (GST-inclusive price)</label>
+                <select id="gstRate">
+                    <option value="5">5%</option>
+                    <option value="12">12%</option>
+                    <option value="18" selected>18%</option>
+                </select>
+                <small style="margin-top:6px;color:#667085;">
+                    The product price already includes GST.
+                </small>
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Stock Quantity</label>
+
+                <input
+                    type="number"
+                    id="stock"
+                    placeholder="Example: 50">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Brand</label>
+
+                <input
+                    type="text"
+                    id="brand"
+                    placeholder="Example: MDS">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Voltage</label>
+
+                <input
+                    type="text"
+                    id="voltage"
+                    placeholder="Example: 12V">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Type</label>
+
+                <input
+                    type="text"
+                    id="type"
+                    placeholder="Example: Halogen Bulb">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Category</label>
+
+                <select id="category">
+
+                    <option value="">Select Category</option>
+
+                    <option value="Auto Electrical">
+                        Auto Electrical
+                    </option>
+
+                    <option value="Suspension Parts">
+                        Suspension Parts
+                    </option>
+
+                    <option value="Batteries">
+                        Batteries
+                    </option>
+
+                    <option value="Accessories">
+                        Accessories
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label>Vehicle Compatibility</label>
+
+                <input
+                    type="text"
+                    id="compatibility"
+                    placeholder="Example: Maruti Omni / Van">
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label>Product Description</label>
+
+                <textarea
+                    id="description"
+                    placeholder="Enter product description"></textarea>
+
+            </div>
+
+
+            <div class="form-group full">
+                <label>Main Product Image</label>
+                <input type="file" id="productImage" accept="image/*">
+                <small id="currentImageMain" style="margin-top:6px;color:#667085;"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Image 2</label>
+                <input type="file" id="productImage2" accept="image/*">
+                <small id="currentImage2" style="margin-top:6px;color:#667085;"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Image 3</label>
+                <input type="file" id="productImage3" accept="image/*">
+                <small id="currentImage3" style="margin-top:6px;color:#667085;"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Image 4</label>
+                <input type="file" id="productImage4" accept="image/*">
+                <small id="currentImage4" style="margin-top:6px;color:#667085;"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Image 5</label>
+                <input type="file" id="productImage5" accept="image/*">
+                <small id="currentImage5" style="margin-top:6px;color:#667085;"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Product Status</label>
+                <select id="active">
+                    <option value="true">Active — Show on website</option>
+                    <option value="false">Inactive — Hide from website</option>
+                </select>
+            </div>
+
+        </div>
+
+
+        <button class="save-btn" onclick="saveProduct()">
+            Save Product
+        </button>
+
+
+        <button class="cancel-btn" onclick="hideForm()">
+            Cancel
+        </button>
+
+    </div>
+
+
+    <div class="products-box">
+
+        <h3>Your Products</h3>
+
+        <div id="productList"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+const SUPABASE_URL = "https://vkgvexnaoqgonnmtdlkl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uAdyfJX0gFlQtpbPutxjHw_acg8RzOF";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let products = [];
+let lowStockThreshold = 5;
+let currentImageUrl = "";
+let currentImage2Url = "";
+let currentImage3Url = "";
+let currentImage4Url = "";
+let currentImage5Url = "";
+
+async function checkAdminLogin() {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error || !session) {
+        window.location.href = "index.html";
+        return false;
+    }
+    return true;
+}
+
+function showForm() {
+    clearForm();
+    document.getElementById("formBox").style.display = "block";
+    document.getElementById("formTitle").innerText = "Add New Product";
+}
+
+function hideForm() {
+    document.getElementById("formBox").style.display = "none";
+    clearForm();
+}
+
+function clearForm() {
+    document.getElementById("editProductId").value = "";
+    document.getElementById("productName").value = "";
+    document.getElementById("partNumber").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("mrp").value = "";
+    document.getElementById("gstRate").value = "18";
+    document.getElementById("stock").value = "";
+    document.getElementById("brand").value = "";
+    document.getElementById("voltage").value = "";
+    document.getElementById("type").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("compatibility").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("productImage").value = "";
+    document.getElementById("productImage2").value = "";
+    document.getElementById("productImage3").value = "";
+    document.getElementById("productImage4").value = "";
+    document.getElementById("productImage5").value = "";
+    document.getElementById("currentImageMain").innerText = "";
+    document.getElementById("currentImage2").innerText = "";
+    document.getElementById("currentImage3").innerText = "";
+    document.getElementById("currentImage4").innerText = "";
+    document.getElementById("currentImage5").innerText = "";
+    document.getElementById("active").value = "true";
+    document.getElementById("formTitle").innerText = "Add New Product";
+    currentImageUrl = "";
+    currentImage2Url = "";
+    currentImage3Url = "";
+    currentImage4Url = "";
+    currentImage5Url = "";
+}
+
+async function uploadProductImage(file, existingUrl = "") {
+    if (!file) return existingUrl || "";
+    const extension = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const fileName = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+    const { error } = await supabaseClient.storage.from("product-images").upload(fileName, file, { cacheControl: "3600", upsert: false });
+    if (error) throw error;
+    const { data } = supabaseClient.storage.from("product-images").getPublicUrl(fileName);
+    return data.publicUrl;
+}
+
+async function saveProduct() {
+    const name = document.getElementById("productName").value.trim();
+    const part = document.getElementById("partNumber").value.trim();
+    const price = document.getElementById("price").value;
+    const mrp = document.getElementById("mrp").value;
+    const gstRate = document.getElementById("gstRate").value;
+    const stock = document.getElementById("stock").value;
+    const brand = document.getElementById("brand").value.trim();
+    const voltage = document.getElementById("voltage").value.trim();
+    const type = document.getElementById("type").value.trim();
+    const category = document.getElementById("category").value;
+    const compatibility = document.getElementById("compatibility").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const active = document.getElementById("active").value === "true";
+    const editId = document.getElementById("editProductId").value;
+    const imageFile = document.getElementById("productImage").files[0];
+    const imageFile2 = document.getElementById("productImage2").files[0];
+    const imageFile3 = document.getElementById("productImage3").files[0];
+    const imageFile4 = document.getElementById("productImage4").files[0];
+    const imageFile5 = document.getElementById("productImage5").files[0];
+
+    if (!name || !price) {
+        alert("Please enter Product Name and Price.");
+        return;
+    }
+
+    const button = document.querySelector(".save-btn");
+    button.disabled = true;
+    button.innerText = "Saving...";
+
+    try {
+        const imageUrl = await uploadProductImage(imageFile, currentImageUrl);
+        const image2Url = await uploadProductImage(imageFile2, currentImage2Url);
+        const image3Url = await uploadProductImage(imageFile3, currentImage3Url);
+        const image4Url = await uploadProductImage(imageFile4, currentImage4Url);
+        const image5Url = await uploadProductImage(imageFile5, currentImage5Url);
+        const productData = {
+            name,
+            part_number: part || null,
+            brand: brand || null,
+            category: category || null,
+            compatibility: compatibility || null,
+            voltage: voltage || null,
+            product_type: type || null,
+            price: Number(price),
+            mrp: mrp ? Number(mrp) : null,
+            gst_rate: Number(gstRate || 18),
+            stock: stock ? Number(stock) : 0,
+            description: description || null,
+            image_url: imageUrl || null,
+            image_2_url: image2Url || null,
+            image_3_url: image3Url || null,
+            image_4_url: image4Url || null,
+            image_5_url: image5Url || null,
+            active
+        };
+
+        const result = editId
+            ? await supabaseClient.from("Products").update(productData).eq("id", editId)
+            : await supabaseClient.from("Products").insert(productData);
+
+        if (result.error) throw result.error;
+        alert(editId ? "Product updated successfully!" : "Product saved successfully!");
+        hideForm();
+        await (async function startProductsPage() {
+    await loadLowStockThreshold();
+    await loadProducts();
+})();
+    } catch (error) {
+        console.error("Save product error:", error);
+        alert("Could not save product: " + (error.message || "Unknown error"));
+    } finally {
+        button.disabled = false;
+        button.innerText = "Save Product";
+    }
+}
+
+
+async function loadLowStockThreshold() {
+    try {
+        const { data, error } = await supabaseClient
+            .from("Business_Settings")
+            .select("low_stock_threshold")
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+        if (!error && data && Number.isFinite(Number(data.low_stock_threshold))) {
+            lowStockThreshold = Math.max(0, Number(data.low_stock_threshold));
+        } else {
+            lowStockThreshold = 5;
+        }
+    } catch (error) {
+        console.error("Could not load low stock threshold:", error);
+        lowStockThreshold = 5;
+    }
+
+    const thresholdEl = document.getElementById("stockThresholdValue");
+    if (thresholdEl) thresholdEl.innerText = lowStockThreshold;
+}
+
+function updateStockSummary() {
+    const lowStock = products.filter(product => {
+        const stock = Number(product.stock || 0);
+        return stock > 0 && stock <= lowStockThreshold;
+    }).length;
+
+    const outOfStock = products.filter(product =>
+        Number(product.stock || 0) <= 0
+    ).length;
+
+    const lowEl = document.getElementById("lowStockCount");
+    const outEl = document.getElementById("outOfStockCount");
+
+    if (lowEl) lowEl.innerText = lowStock;
+    if (outEl) outEl.innerText = outOfStock;
+}
+
+async function loadProducts() {
+    if (!await checkAdminLogin()) return;
+    const { data, error } = await supabaseClient.from("Products").select("*").order("id", { ascending: true });
+    const productList = document.getElementById("productList");
+
+    if (error) {
+        console.error("Load products error:", error);
+        productList.innerHTML = `<div class="empty">Could not load products.<br>${escapeHtml(error.message)}</div>`;
+        return;
+    }
+
+    products = data || [];
+    updateStockSummary();
+    if (!products.length) {
+        productList.innerHTML = `<div class="empty">No products added yet.<br><br>Click <b>+ Add Product</b> to add your first product.</div>`;
+        return;
+    }
+
+    productList.innerHTML = "";
+    products.forEach(product => {
+        const card = document.createElement("div");
+        const stockQty = Number(product.stock || 0);
+        const isOutOfStock = stockQty <= 0;
+        const isLowStock = stockQty > 0 && stockQty <= lowStockThreshold;
+
+        card.className = "product-card" +
+            (isOutOfStock ? " out-stock" : isLowStock ? " low-stock" : "");
+
+        const isActive = product.active !== false;
+        card.innerHTML = `
+            <div style="display:flex;flex-wrap:wrap;gap:6px;max-width:150px;">
+                ${[product.image_url, product.image_2_url, product.image_3_url, product.image_4_url, product.image_5_url]
+                    .filter(Boolean)
+                    .map((url, index) => `<img src="${escapeHtml(url)}" alt="${escapeHtml(product.name || "")} image ${index + 1}" style="width:64px;height:64px;object-fit:contain;border:1px solid #e4e7ec;border-radius:8px;padding:4px;background:white;">`)
+                    .join("")}
+            </div>
+            <div class="product-info">
+                <h3>${escapeHtml(product.name || "")}</h3>
+                <p><b>Status:</b> <span style="color:${isActive ? "#067647" : "#b42318"};font-weight:bold;">${isActive ? "Active" : "Inactive"}</span></p>
+                <p><b>Part Number:</b> ${escapeHtml(product.part_number || "Not specified")}</p>
+                <p><b>Brand:</b> ${escapeHtml(product.brand || "Not specified")}</p>
+                <p><b>Voltage:</b> ${escapeHtml(product.voltage || "Not specified")}</p>
+                <p><b>Type:</b> ${escapeHtml(product.product_type || "Not specified")}</p>
+                <p><b>Category:</b> ${escapeHtml(product.category || "Not specified")}</p>
+                <p><b>Vehicle:</b> ${escapeHtml(product.compatibility || "Not specified")}</p>
+                <p><b>Price:</b> ₹${Number(product.price || 0).toLocaleString("en-IN")}</p>
+                <p><b>MRP:</b> ${product.mrp == null ? "Not specified" : "₹" + Number(product.mrp).toLocaleString("en-IN")}</p>
+                <p><b>GST:</b> ${Number(product.gst_rate || 18)}% <span style="color:#667085;">(included in price)</span></p>
+                <p>
+                    <b>Stock:</b> ${product.stock ?? 0}
+                    ${isOutOfStock
+                        ? '<span class="stock-badge out">Out of Stock</span>'
+                        : isLowStock
+                            ? '<span class="stock-badge low">Low Stock</span>'
+                            : ''}
+                </p>
+                <p>${escapeHtml(product.description || "")}</p>
+            </div>
+            <div class="product-actions">
+                <button class="edit-btn" onclick="editProduct(${Number(product.id)})">Edit</button>
+                <button class="delete-btn" onclick="deleteProduct(${Number(product.id)})">Delete</button>
+            </div>`;
+        productList.appendChild(card);
+    });
+}
+
+function editProduct(id) {
+    const product = products.find(p => String(p.id) === String(id));
+    if (!product) { alert("Product not found."); return; }
+    document.getElementById("editProductId").value = product.id;
+    document.getElementById("productName").value = product.name || "";
+    document.getElementById("partNumber").value = product.part_number || "";
+    document.getElementById("price").value = product.price ?? "";
+    document.getElementById("mrp").value = product.mrp ?? "";
+    document.getElementById("gstRate").value = String(product.gst_rate || 18);
+    document.getElementById("stock").value = product.stock ?? "";
+    document.getElementById("brand").value = product.brand || "";
+    document.getElementById("voltage").value = product.voltage || "";
+    document.getElementById("type").value = product.product_type || "";
+    document.getElementById("category").value = product.category || "";
+    document.getElementById("compatibility").value = product.compatibility || "";
+    document.getElementById("description").value = product.description || "";
+    document.getElementById("active").value = product.active === false ? "false" : "true";
+    currentImageUrl = product.image_url || "";
+    currentImage2Url = product.image_2_url || "";
+    currentImage3Url = product.image_3_url || "";
+    currentImage4Url = product.image_4_url || "";
+    currentImage5Url = product.image_5_url || "";
+
+    document.getElementById("currentImageMain").innerText = currentImageUrl ? "Current main image saved ✓" : "No main image saved";
+    document.getElementById("currentImage2").innerText = currentImage2Url ? "Current Image 2 saved ✓" : "No Image 2 saved";
+    document.getElementById("currentImage3").innerText = currentImage3Url ? "Current Image 3 saved ✓" : "No Image 3 saved";
+    document.getElementById("currentImage4").innerText = currentImage4Url ? "Current Image 4 saved ✓" : "No Image 4 saved";
+    document.getElementById("currentImage5").innerText = currentImage5Url ? "Current Image 5 saved ✓" : "No Image 5 saved";
+
+    document.getElementById("formTitle").innerText = "Edit Product";
+    document.getElementById("formBox").style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function deleteProduct(id) {
+    if (!confirm("Are you sure you want to permanently delete this product? If you only want to hide it from customers, edit it and set Product Status to Inactive.")) return;
+    const { error } = await supabaseClient.from("Products").delete().eq("id", id);
+    if (error) {
+        console.error("Delete product error:", error);
+        alert("Could not delete product: " + error.message);
+        return;
+    }
+    alert("Product deleted successfully.");
+    await loadProducts();
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function goDashboard() {
+    window.location.href = "dashboard.html";
+}
+
+loadProducts();
+</script>
+
+
+</body>
+</html>
