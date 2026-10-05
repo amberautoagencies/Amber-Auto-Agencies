@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Amber Auto Agencies - Admin Dashboard</title>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #101828;
+}
+
+/* HEADER */
+
+.header {
+    background: #101828;
+    color: white;
+    padding: 18px 25px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.logout {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.logout:hover {
+    background: #d97706;
+}
+
+/* MAIN */
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+}
+
+.welcome h2 {
+    margin-bottom: 5px;
+}
+
+.welcome p {
+    color: #667085;
+}
+
+/* STAT CARDS */
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+.card h3 {
+    margin: 0 0 10px;
+    font-size: 15px;
+    color: #667085;
+}
+
+.number {
+    font-size: 30px;
+    font-weight: bold;
+    color: #f59e0b;
+}
+
+
+.sales-section{
+    margin-top:30px;
+}
+.sales-section h2{
+    margin-bottom:12px;
+}
+.sales-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+}
+.sales-table-wrap{
+    margin-top:24px;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 3px 12px rgba(0,0,0,0.08);
+    overflow-x:auto;
+}
+.sales-table{
+    width:100%;
+    border-collapse:collapse;
+}
+.sales-table th,
+.sales-table td{
+    padding:11px 10px;
+    border-bottom:1px solid #e4e7ec;
+    text-align:left;
+    font-size:14px;
+}
+.sales-table th{
+    background:#f9fafb;
+    color:#475467;
+}
+.sales-table td:last-child,
+.sales-table th:last-child{
+    text-align:right;
+}
+.status-chip{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:bold;
+    background:#f2f4f7;
+}
+@media (max-width: 900px){
+    .sales-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media (max-width: 500px){
+    .sales-grid{grid-template-columns:1fr;}
+}
+
+        /* MENU */
+
+.menu {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.menu-item {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    transform: translateY(-2px);
+    transition: 0.2s;
+}
+
+.menu-item h3 {
+    margin-top: 0;
+}
+
+.menu-item p {
+    color: #667085;
+    line-height: 1.5;
+}
+
+/* MOBILE */
+
+@media (max-width: 800px) {
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .menu {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 500px) {
+
+    .header {
+        padding: 15px;
+    }
+
+    .header h1 {
+        font-size: 17px;
+    }
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<div class="header">
+
+    <h1>
+        Amber Auto Agencies — Admin
+    </h1>
+
+    <button
+        class="logout"
+        onclick="logout()">
+
+        Logout
+
+    </button>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="container">
+
+    <div class="welcome">
+
+        <h2>
+            Dashboard
+        </h2>
+
+        <p>
+            Welcome to the Amber Auto Agencies
+            Admin Panel.
+        </p>
+
+    </div>
+
+    <!-- STATISTICS -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <h3>Total Products</h3>
+
+            <div class="number" id="totalProducts">
+                0
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Total Orders</h3>
+
+            <div class="number" id="totalOrders">
+                0
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Pending Orders</h3>
+
+            <div class="number" id="pendingOrders">
+                0
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Total Sales</h3>
+
+            <div class="number" id="totalSales">
+                ₹0
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="sales-section">
+        <h2>Sales Overview</h2>
+
+        <div class="sales-grid">
+            <div class="card">
+                <h3>Today's Sales</h3>
+                <div class="number" id="todaySales">₹0</div>
+            </div>
+
+            <div class="card">
+                <h3>This Month's Sales</h3>
+                <div class="number" id="monthSales">₹0</div>
+            </div>
+
+            <div class="card">
+                <h3>Orders Today</h3>
+                <div class="number" id="todayOrders">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Orders This Month</h3>
+                <div class="number" id="monthOrders">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Paid / Verified Orders</h3>
+                <div class="number" id="paidOrders">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Delivered Orders</h3>
+                <div class="number" id="deliveredOrders">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Pending Orders</h3>
+                <div class="number" id="pendingOrders2">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Average Order Value</h3>
+                <div class="number" id="averageOrderValue">₹0</div>
+            </div>
+        </div>
+
+        <div class="sales-table-wrap">
+            <h3 style="margin-top:0;">Recent Paid Orders</h3>
+            <table class="sales-table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="recentOrdersBody">
+                    <tr><td colspan="4">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ADMIN MENU -->
+
+    <div class="menu">
+
+        <div
+            class="menu-item"
+            onclick="window.location.href='products.html'">
+
+            <h3>📦 Products</h3>
+
+            <p>
+                Add, edit and manage
+                your products.
+            </p>
+
+        </div>
+
+        <div
+            class="menu-item"
+            onclick="window.location.href='orders.html'">
+
+            <h3>🛒 Orders</h3>
+
+            <p>
+                View and manage
+                customer orders.
+            </p>
+
+        </div>
+
+        <div
+            class="menu-item"
+            onclick="window.location.href='settings.html'">
+
+            <h3>⚙️ Business Settings</h3>
+
+            <p>
+                Manage your business
+                information, contact
+                details and payment settings.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* =========================
+   SUPABASE CONNECTION
+========================= */
+
+const SUPABASE_URL =
+    "https://vkgvexnaoqgonnmtdlkl.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_uAdyfJX0gFlQtpbPutxjHw_acg8RzOF";
+
+const supabaseClient =
+    supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+/* =========================
+   CHECK ADMIN LOGIN
+========================= */
+
+async function checkAdminLogin() {
+
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+
+        window.location.href =
+            "index.html";
+
+        return false;
+    }
+
+    return true;
+}
+
+
+/* =========================
+   LOAD DASHBOARD
+========================= */
+
+async function loadDashboard() {
+
+    const loggedIn =
+        await checkAdminLogin();
+
+    if (!loggedIn) {
+        return;
+    }
+
+
+    /* -------------------------
+       PRODUCTS FROM SUPABASE
+    ------------------------- */
+
+    const {
+        data: products,
+        error: productError
+    } = await supabaseClient
+        .from("Products")
+        .select("id");
+
+
+    if (productError) {
+
+        console.error(
+            "Product loading error:",
+            productError
+        );
+
+    } else {
+
+        document.getElementById(
+            "totalProducts"
+        ).innerText =
+            products.length;
+
+    }
+
+
+    /* -------------------------
+       ORDERS FROM SUPABASE
+    ------------------------- */
+
+    const {
+        data: orders,
+        error: orderError
+    } = await supabaseClient
+        .from("Orders")
+        .select("id, order_number, created_at, order_status, payment_status, total_amount");
+
+
+    if (orderError) {
+
+        console.error(
+            "Order loading error:",
+            orderError
+        );
+
+        document.getElementById("totalOrders").innerText = "—";
+        document.getElementById("pendingOrders").innerText = "—";
+        document.getElementById("totalSales").innerText = "—";
+
+        ["todaySales","monthSales","todayOrders","monthOrders","paidOrders",
+         "deliveredOrders","pendingOrders2","averageOrderValue"].forEach(function(id){
+            const el = document.getElementById(id);
+            if (el) el.innerText = "—";
+        });
+
+        const recentOrdersBody = document.getElementById("recentOrdersBody");
+        if (recentOrdersBody) {
+            recentOrdersBody.innerHTML =
+                '<tr><td colspan="4">Could not load recent orders.</td></tr>';
+        }
+
+    } else {
+
+        document.getElementById(
+            "totalOrders"
+        ).innerText =
+            orders.length;
+
+
+        const pending =
+            orders.filter(function(order) {
+
+                return order.order_status === "Pending";
+
+            });
+
+
+        document.getElementById(
+            "pendingOrders"
+        ).innerText =
+            pending.length;
+
+
+        /* Count sales only after payment is verified as Paid */
+
+        const sales =
+            orders
+            .filter(function(order) {
+
+                return order.payment_status === "Paid" || order.payment_status === "Paid / Verified";
+
+            })
+            .reduce(
+                function(total, order) {
+
+                    return total +
+                        Number(order.total_amount || 0);
+
+                },
+                0
+            );
+
+
+        document.getElementById(
+            "totalSales"
+        ).innerText =
+            "₹" +
+            sales.toLocaleString("en-IN");
+
+        const paidOrders = orders.filter(function(order) {
+            return order.payment_status === "Paid" || order.payment_status === "Paid / Verified";
+        });
+
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const tomorrowStart = new Date(todayStart);
+        tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+        function isBetween(dateValue, start, end) {
+            if (!dateValue) return false;
+            const d = new Date(dateValue);
+            if (Number.isNaN(d.getTime())) return false;
+            return d >= start && d < end;
+        }
+
+        const todayPaid = paidOrders.filter(order =>
+            isBetween(order.created_at, todayStart, tomorrowStart)
+        );
+
+        const monthPaid = paidOrders.filter(order =>
+            isBetween(order.created_at, monthStart, nextMonthStart)
+        );
+
+        const todaySales = todayPaid.reduce(
+            (sum, order) => sum + Number(order.total_amount || 0),
+            0
+        );
+
+        const monthSales = monthPaid.reduce(
+            (sum, order) => sum + Number(order.total_amount || 0),
+            0
+        );
+
+        const deliveredOrders = orders.filter(
+            order => order.order_status === "Delivered"
+        );
+
+        const averageOrderValue =
+            paidOrders.length
+                ? sales / paidOrders.length
+                : 0;
+
+        document.getElementById("todaySales").innerText =
+            "₹" + todaySales.toLocaleString("en-IN");
+
+        document.getElementById("monthSales").innerText =
+            "₹" + monthSales.toLocaleString("en-IN");
+
+        document.getElementById("todayOrders").innerText =
+            todayPaid.length;
+
+        document.getElementById("monthOrders").innerText =
+            monthPaid.length;
+
+        document.getElementById("paidOrders").innerText =
+            paidOrders.length;
+
+        document.getElementById("deliveredOrders").innerText =
+            deliveredOrders.length;
+
+        document.getElementById("pendingOrders2").innerText =
+            pending.length;
+
+        document.getElementById("averageOrderValue").innerText =
+            "₹" + averageOrderValue.toLocaleString("en-IN", {
+                maximumFractionDigits: 2
+            });
+
+        const recent = [...paidOrders]
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 8);
+
+        const recentOrdersBody = document.getElementById("recentOrdersBody");
+
+        if (!recent.length) {
+            recentOrdersBody.innerHTML =
+                '<tr><td colspan="4">No paid orders yet.</td></tr>';
+        } else {
+            recentOrdersBody.innerHTML = recent.map(order => {
+                const date = order.created_at
+                    ? new Date(order.created_at).toLocaleString("en-IN")
+                    : "—";
+
+                const safeOrderNo = String(order.order_number || order.id || "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;");
+
+                const safeStatus = String(order.order_status || "Pending")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;");
+
+                return `
+                    <tr>
+                        <td>${safeOrderNo}</td>
+                        <td>${date}</td>
+                        <td><span class="status-chip">${safeStatus}</span></td>
+                        <td>₹${Number(order.total_amount || 0).toLocaleString("en-IN")}</td>
+                    </tr>`;
+            }).join("");
+        }
+
+    }
+
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    window.location.href =
+        "index.html";
+}
+
+
+/* =========================
+   START DASHBOARD
+========================= */
+
+loadDashboard();
+
+</script>
+
+</body>
+
+</html>
