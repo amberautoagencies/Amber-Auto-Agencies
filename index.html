@@ -173,7 +173,8 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
 #aaaBanner {background:#0f172a;padding:0 0 24px;}
 #aaaBanner .aaa-banner-frame {position:relative;width:100%;max-width:720px;margin:auto;}
 #aaaBannerSlides {aspect-ratio:2/1;position:relative;overflow:hidden;}
-#aaaBannerSlides img {width:100%;height:100%;object-fit:contain;display:block;}
+#aaaBannerSlides img {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;transition:transform 550ms ease-in-out;}
+@media(prefers-reduced-motion:reduce){#aaaBannerSlides img{transition:none;}}
 #aaaBanner button {cursor:pointer;}
 #aaaBanner button[hidden] {display:none;}
 .aaa-banner-prev,.aaa-banner-next {position:absolute;top:50%;transform:translateY(-50%);border:0;border-radius:50%;background:#0f172acc;color:white;width:36px;height:36px;font-size:26px;line-height:1;}
@@ -2518,7 +2519,7 @@ const AAA_DEFAULT_BANNERS = [{"image": "data:image/png;base64,iVBORw0KGgoAAAANSU
  let slides=[],current=0,timer=null,paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
  function stop(){clearInterval(timer);timer=null;}
  function start(){stop();if(slides.length>1&&!paused&&!document.hidden)timer=setInterval(()=>show(current+1),5000);}
- function show(n){current=(n+slides.length)%slides.length;Array.from(box.children).forEach((el,i)=>{el.hidden=i!==current;el.style.display=i===current?'block':'none';});Array.from(dots.children).forEach((el,i)=>el.setAttribute('aria-current',String(i===current)));}
+ function show(n){current=(n+slides.length)%slides.length;Array.from(box.children).forEach((el,i)=>{el.hidden=false;el.style.display='block';el.style.transform='translateX('+((i-current)*100)+'%)';el.setAttribute('aria-hidden',String(i!==current));});Array.from(dots.children).forEach((el,i)=>el.setAttribute('aria-current',String(i===current)));}
  function render(list){stop();slides=list.filter(s=>s&&typeof s.image==='string'&&(/^(https?:\/\/)/.test(s.image)||/^data:image\/(png|jpeg|webp);base64,/.test(s.image)));box.replaceChildren();dots.replaceChildren();root.hidden=!slides.length;if(!slides.length)return;
  slides.forEach((s,i)=>{const img=document.createElement('img');img.src=s.image;img.alt=s.alt||'Amber Auto Agencies banner';img.width=1774;img.height=887;img.loading=i?'lazy':'eager';box.append(img);const btn=document.createElement('button');btn.type='button';btn.setAttribute('aria-label','Show banner '+(i+1));btn.onclick=()=>{show(i);start();};dots.append(btn);});
  root.querySelector('.aaa-banner-prev').hidden=slides.length<2;root.querySelector('.aaa-banner-next').hidden=slides.length<2;pause.hidden=slides.length<2;dots.hidden=slides.length<2;show(0);start();}
