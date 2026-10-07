@@ -235,9 +235,17 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
       <button type="button" onclick="menuGoShop()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 text-left font-semibold text-slate-800">
         <i class="fa-solid fa-bag-shopping w-5 text-amber-600"></i><span>Shop / All Products</span>
       </button>
-      <button type="button" onclick="menuGoCategories()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 text-left font-semibold text-slate-800">
-        <i class="fa-solid fa-table-cells-large w-5 text-amber-600"></i><span>Categories</span>
+      <button type="button" onclick="toggleMenuCategories()" aria-expanded="false" id="menuCategoriesButton" class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 text-left font-semibold text-slate-800">
+        <span class="flex items-center gap-3">
+          <i class="fa-solid fa-table-cells-large w-5 text-amber-600"></i>
+          <span>Categories</span>
+        </span>
+        <i id="menuCategoriesChevron" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
       </button>
+
+      <div id="menuCategoriesList" class="hidden ml-8 mr-2 mb-2 border-l-2 border-amber-200 pl-3 space-y-1">
+        <div class="text-xs text-slate-400 px-2 py-2">Loading categories...</div>
+      </div>
       <button type="button" onclick="menuTrackOrder()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 text-left font-semibold text-slate-800">
         <i class="fa-solid fa-truck-fast w-5 text-amber-600"></i><span>Track Order</span>
       </button>
@@ -1017,31 +1025,93 @@ function escapeHtml(value){
    .replace(/'/g,'&#039;');
 }
 
-function renderCategoryCards(){
- const grid=document.getElementById('categoryGrid');
- if(!grid) return;
 
+function getAvailableCategories(){
  const counts={};
+
  productsData.forEach(function(product){
    const category=String(product.category||'').trim();
    if(!category || category==='—') return;
    counts[category]=(counts[category]||0)+1;
  });
 
- const categories=Object.keys(counts).sort(function(a,b){
+ return Object.keys(counts).sort(function(a,b){
    return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});
+ }).map(function(category){
+   return {name:category,count:counts[category]};
  });
+}
+
+function renderMenuCategories(){
+ const list=document.getElementById('menuCategoriesList');
+ if(!list) return;
+
+ const categories=getAvailableCategories();
 
  if(!categories.length){
+   list.innerHTML='<div class="text-xs text-slate-400 px-2 py-2">No categories available yet.</div>';
+   return;
+ }
+
+ list.innerHTML=categories.map(function(item){
+   const safe=escapeHtml(item.name);
+   const encoded=encodeURIComponent(item.name);
+   const icon=getCategoryIcon(item.name);
+
+   return `<button type="button"
+      onclick="menuSelectCategory(decodeURIComponent('${encoded}'))"
+      class="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg hover:bg-amber-50 text-left text-sm font-semibold text-slate-700">
+      <span class="flex items-center gap-2 min-w-0">
+        <i class="fa-solid ${icon} w-4 text-amber-600"></i>
+        <span class="truncate">${safe}</span>
+      </span>
+      <span class="text-[10px] text-slate-400 shrink-0">${item.count}</span>
+    </button>`;
+ }).join('');
+}
+
+function toggleMenuCategories(){
+ const list=document.getElementById('menuCategoriesList');
+ const button=document.getElementById('menuCategoriesButton');
+ const chevron=document.getElementById('menuCategoriesChevron');
+ if(!list || !button) return;
+
+ renderMenuCategories();
+
+ const isHidden=list.classList.contains('hidden');
+ list.classList.toggle('hidden', !isHidden);
+ button.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+
+ if(chevron){
+   chevron.classList.toggle('rotate-180', isHidden);
+ }
+}
+
+function menuSelectCategory(category){
+ closeSiteMenu();
+ setTimeout(function(){
+   filterByCategory(category);
+ },320);
+}
+
+function renderCategoryCards(){
+ const grid=document.getElementById('categoryGrid');
+ renderMenuCategories();
+ if(!grid) return;
+
+ const categoryItems=getAvailableCategories();
+
+ if(!categoryItems.length){
    grid.innerHTML='<div class="col-span-2 sm:col-span-3 lg:col-span-6 text-center text-xs text-slate-400 py-4">No categories available yet.</div>';
    return;
  }
 
- grid.innerHTML=categories.map(function(category){
+ grid.innerHTML=categoryItems.map(function(item){
+   const category=item.name;
    const safe=escapeHtml(category);
    const encoded=encodeURIComponent(category);
    const icon=getCategoryIcon(category);
-   const count=counts[category];
+   const count=item.count;
    return `<button type="button" onclick="filterByCategory(decodeURIComponent('${encoded}'))" class="group text-left rounded-2xl border border-slate-200 bg-slate-50 hover:bg-amber-50 hover:border-amber-300 p-3 transition-all shadow-sm hover:shadow-md">
      <div class="flex items-center justify-between gap-2">
        <span class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-amber-500 flex items-center justify-center text-lg group-hover:border-amber-300"><i class="fa-solid ${icon}"></i></span>
@@ -2307,6 +2377,14 @@ function closeSiteMenu(){
  setTimeout(()=>{
    drawer.classList.add('invisible');
    document.body.classList.remove('overflow-hidden');
+
+   const categoryList=document.getElementById('menuCategoriesList');
+   const categoryButton=document.getElementById('menuCategoriesButton');
+   const categoryChevron=document.getElementById('menuCategoriesChevron');
+
+   if(categoryList) categoryList.classList.add('hidden');
+   if(categoryButton) categoryButton.setAttribute('aria-expanded','false');
+   if(categoryChevron) categoryChevron.classList.remove('rotate-180');
  },300);
 }
 
@@ -2326,8 +2404,7 @@ function menuGoShop(){
 }
 
 function menuGoCategories(){
- closeSiteMenu();
- setTimeout(()=>smoothScrollToElement('partsFinder'),320);
+ toggleMenuCategories();
 }
 
 function menuTrackOrder(){
