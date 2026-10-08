@@ -240,6 +240,111 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
 #detailsImageSlider.aaa-zoom-active{touch-action:none;cursor:grab}
 #detailsImageSlider.aaa-zoom-active:active{cursor:grabbing}
 #detailsProductImage img{user-select:none;-webkit-user-select:none;-webkit-user-drag:none;transform-origin:center center;will-change:transform}
+
+/* === Amber Auto Agencies: professional motion enhancements (Oct 2026) === */
+@keyframes aaaHeaderArrival {from{opacity:.15}to{opacity:1}}
+@keyframes aaaBannerArrival {from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes aaaCardArrival {from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+@keyframes aaaToastArrival {from{opacity:0;transform:translateY(-9px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes aaaModalArrival {from{opacity:0;transform:translateY(10px) scale(.987)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes aaaCartPop {0%,100%{transform:scale(1)}40%{transform:scale(1.27)}65%{transform:scale(.96)}}
+@media (prefers-reduced-motion:no-preference){
+  html{scroll-behavior:smooth;scroll-padding-top:86px}
+  header{animation:aaaHeaderArrival .48s ease-out}
+  #aaaBanner .aaa-banner-frame{animation:aaaBannerArrival .6s ease-out backwards}
+
+  /* Sections enter gently once scrolled into view; JS adds these classes progressively. */
+  .aaa-reveal-pending{opacity:0;transform:translate3d(0,16px,0)}
+  .aaa-reveal-visible{opacity:1;transform:none;transition:opacity .58s ease,transform .58s cubic-bezier(.2,.7,.25,1)}
+
+  /* Categories: subtle lift and icon motion without changing sizes. */
+  #categoryGrid > button{transition:transform .26s ease,box-shadow .26s ease,border-color .26s ease,background-color .26s ease}
+  #categoryGrid > button .fa-arrow-right{display:inline-block;transition:transform .25s ease}
+  #categoryGrid > button > div:first-child > span:first-child{transition:transform .28s ease,border-color .25s ease}
+  #categoryGrid > button:active{transform:scale(.985)}
+
+  /* Cards animate when products load or filters change. No dependency on Supabase data. */
+  #productGrid > article{animation:aaaCardArrival .44s cubic-bezier(.18,.73,.25,1) backwards}
+  #productGrid > article:nth-child(2){animation-delay:.045s}
+  #productGrid > article:nth-child(3){animation-delay:.09s}
+  #productGrid > article:nth-child(4){animation-delay:.135s}
+  #productGrid > article:nth-child(5){animation-delay:.18s}
+  #productGrid > article:nth-child(6){animation-delay:.225s}
+  #productGrid > article:nth-child(n+7){animation-delay:.24s}
+  #productGrid .product-card-image img{transition:transform .4s cubic-bezier(.2,.7,.2,1)!important}
+  #productGrid .aaa-product-actions button{transition:transform .22s ease,box-shadow .22s ease,background-color .22s ease}
+  #productGrid .aaa-product-actions button:active{transform:scale(.97)}
+
+  /* Modals and notices appear smoothly without changing how they close. */
+  #productDetailsModal:not(.hidden) > div:nth-child(2) > div,
+  #checkoutModal:not(.hidden) > div:nth-child(2) > div,
+  #trackOrderModal:not(.hidden) > div:first-child > div{
+    animation:aaaModalArrival .28s cubic-bezier(.18,.8,.25,1) backwards
+  }
+  #toast:not(.hidden){animation:aaaToastArrival .28s ease-out}
+  #cartCountBadge.aaa-cart-pop{animation:aaaCartPop .45s ease-out}
+}
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  #categoryGrid > button:hover{transform:translateY(-4px)}
+  #categoryGrid > button:hover .fa-arrow-right{transform:translateX(4px)}
+  #categoryGrid > button:hover > div:first-child > span:first-child{transform:rotate(-5deg) scale(1.07)}
+  #productGrid > article:hover .product-card-image img{transform:scale(1.15)!important}
+  #productGrid .aaa-product-actions button:hover{transform:translateY(-2px)}
+}
+/* Accessibility: no automatic movement, smooth scrolling, or hidden sections. */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .aaa-reveal-pending,.aaa-reveal-visible{opacity:1!important;transform:none!important;transition:none!important}
+  #productGrid > article,#categoryGrid > button,header,#aaaBanner .aaa-banner-frame,
+  #toast,#cartCountBadge,#productDetailsModal > div,#checkoutModal > div,#trackOrderModal > div{
+    animation:none!important
+  }
+  #productGrid .product-card-image img{transition:none!important}
+}
+/* Print remains still and unobstructed. */
+@media print{.aaa-reveal-pending,.aaa-reveal-visible{opacity:1!important;transform:none!important;animation:none!important}}
+/* === End professional motion enhancements === */
+
+/* === Amber Auto Agencies: Smart Product Search === */
+.aaa-smart-results{
+  position:absolute;left:0;right:0;top:calc(100% + 9px);z-index:65;
+  background:#fff;color:#0f172a;border:1px solid #e2e8f0;
+  border-radius:15px;box-shadow:0 18px 42px rgba(2,6,23,.21);
+  overflow:hidden;text-align:left;
+}
+.aaa-smart-results[hidden]{display:none!important}
+.aaa-smart-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:12px 14px 9px;font-size:11px;font-weight:800;letter-spacing:.02em;color:#334155}
+.aaa-smart-count{font-size:10px;font-weight:600;color:#64748b;white-space:nowrap}
+.aaa-smart-list{max-height:min(340px,52vh);overflow-y:auto;overscroll-behavior:contain}
+.aaa-smart-item{display:flex;width:100%;align-items:center;gap:10px;padding:10px 12px;
+  background:#fff;border:0;border-top:1px solid #f1f5f9;text-align:left;
+  cursor:pointer;transition:background .16s ease}
+.aaa-smart-item:hover,.aaa-smart-item[aria-selected="true"]{background:#fffbeb}
+.aaa-smart-thumb{width:49px;height:49px;flex:0 0 49px;display:flex;align-items:center;
+  justify-content:center;border-radius:9px;background:#f8fafc;border:1px solid #f1f5f9;overflow:hidden}
+.aaa-smart-thumb img{width:100%;height:100%;object-fit:contain;padding:3px}
+.aaa-smart-thumb i{color:#d97706;font-size:19px}
+.aaa-smart-info{min-width:0;flex:1}
+.aaa-smart-name{font-size:12px;line-height:1.35;font-weight:750;color:#0f172a;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.aaa-smart-meta{font-size:10px;color:#64748b;margin-top:3px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.aaa-smart-money{min-width:66px;text-align:right;flex-shrink:0}
+.aaa-smart-price{display:block;font-size:12px;font-weight:800;color:#0f172a}
+.aaa-smart-price.aaa-smart-sale{color:#dc2626}
+.aaa-smart-mrp{display:block;margin-top:2px;font-size:10px;color:#94a3b8;text-decoration:line-through}
+.aaa-smart-all{display:flex;width:100%;align-items:center;justify-content:center;gap:7px;
+  padding:12px;background:#fff7ed;border:0;border-top:1px solid #fde68a;
+  color:#92400e;font-size:11px;font-weight:800;cursor:pointer;transition:background .16s ease}
+.aaa-smart-all:hover,.aaa-smart-all:focus-visible{background:#fef3c7}
+.aaa-smart-empty{padding:18px 14px 20px;text-align:center;color:#64748b;font-size:12px}
+.aaa-smart-empty i{display:block;color:#d97706;font-size:20px;margin-bottom:7px}
+#mobileSearchBox{position:relative}
+#mobileSearchBox .aaa-smart-results{left:16px;right:16px;top:calc(100% - 5px)}
+@media(max-width:380px){.aaa-smart-item{gap:7px;padding:9px}.aaa-smart-thumb{width:42px;height:42px;flex-basis:42px}}
+@media(prefers-reduced-motion:reduce){.aaa-smart-item,.aaa-smart-all{transition:none}}
+/* === End Smart Product Search === */
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -273,9 +378,14 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
       <div class="min-w-0"><span class="text-lg sm:text-xl font-black tracking-tight block text-white leading-none">AMBER <span class="text-amber-500">AUTO</span></span><span id="headerBusinessName" class="text-[9px] sm:text-[10px] font-semibold tracking-wider text-slate-400 uppercase block mt-1">Amber Auto Agencies</span></div>
     </a>
     <div class="hidden md:flex flex-1 max-w-lg mx-4 relative">
-      <input id="searchInput" oninput="handleSearch()" placeholder="Search product name or part no..." class="w-full bg-slate-800 text-slate-100 placeholder-slate-400 text-sm rounded-xl pl-10 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500 border border-slate-700">
+      <input id="searchInput" oninput="handleSearch()" placeholder="Search product name or part no..." class="w-full bg-slate-800 text-slate-100 placeholder-slate-400 text-sm rounded-xl pl-10 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500 border border-slate-700" autocomplete="off" aria-label="Search products" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="aaaSmartDesktopList">
       <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
-      <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-3 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-3 text-slate-400 hover:text-white" aria-label="Clear product search"><i class="fa-solid fa-xmark"></i></button>
+      <div id="aaaSmartDesktop" class="aaa-smart-results" hidden>
+        <div class="aaa-smart-heading"><span>Matching Products</span><span id="aaaSmartDesktopCount" class="aaa-smart-count"></span></div>
+        <div id="aaaSmartDesktopList" class="aaa-smart-list" role="listbox" aria-label="Matching products"></div>
+        <button type="button" id="aaaSmartDesktopAll" class="aaa-smart-all">View all results <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      </div>
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
       <button onclick="toggleMobileSearch()" class="md:hidden p-2 text-slate-300 hover:text-amber-400"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -283,7 +393,14 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
       <button onclick="openCartDrawer()" class="relative bg-slate-800 hover:bg-slate-700 p-2.5 rounded-xl border border-slate-700 text-amber-400 flex items-center gap-2 px-3"><i class="fa-solid fa-cart-shopping"></i><span class="hidden sm:inline text-xs font-bold text-white">Cart</span><span id="cartCountBadge" class="bg-amber-500 text-slate-900 text-xs font-black rounded-full h-5 min-w-5 px-1.5 flex items-center justify-center">0</span></button>
     </div>
   </div>
-  <div id="mobileSearchBox" class="hidden px-4 pb-3 md:hidden"><input id="mobileSearchInput" oninput="handleMobileSearch()" placeholder="Search product name or part no..." class="w-full bg-slate-800 text-slate-100 placeholder-slate-400 text-sm rounded-xl px-4 py-2 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"></div>
+  <div id="mobileSearchBox" class="hidden px-4 pb-3 md:hidden">
+    <input id="mobileSearchInput" oninput="handleMobileSearch()" placeholder="Search product name or part no..." class="w-full bg-slate-800 text-slate-100 placeholder-slate-400 text-sm rounded-xl px-4 py-2 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500" autocomplete="off" aria-label="Search products" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="aaaSmartMobileList">
+    <div id="aaaSmartMobile" class="aaa-smart-results" hidden>
+      <div class="aaa-smart-heading"><span>Matching Products</span><span id="aaaSmartMobileCount" class="aaa-smart-count"></span></div>
+      <div id="aaaSmartMobileList" class="aaa-smart-list" role="listbox" aria-label="Matching products"></div>
+      <button type="button" id="aaaSmartMobileAll" class="aaa-smart-all">View all results <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
 </header>
 
 <!-- MOBILE / SITE MENU DRAWER -->
@@ -1031,6 +1148,7 @@ async function loadProductsFromSupabase() {
         populateDynamicProductFilters();
         renderCategoryCards();
         renderProducts(filteredProducts);
+        aaaRefreshSmartSearchAfterProductsLoad();
         return;
     }
 
@@ -1042,6 +1160,7 @@ async function loadProductsFromSupabase() {
         populateDynamicProductFilters();
         renderCategoryCards();
         renderProducts(filteredProducts);
+        aaaRefreshSmartSearchAfterProductsLoad();
         return;
     }
 
@@ -1077,6 +1196,7 @@ async function loadProductsFromSupabase() {
     renderCategoryCards();
 
     renderProducts(filteredProducts);
+        aaaRefreshSmartSearchAfterProductsLoad();
 
     console.log(
         "Products loaded from Supabase:",
@@ -1260,10 +1380,203 @@ function showAllCategoriesProducts(){
 
 function applyFilters(){const brand=document.getElementById('finderBrand').value,type=document.getElementById('finderType').value,voltage=document.getElementById('finderVoltage').value,price=document.getElementById('finderPrice').value;filteredProducts=productsData.filter(p=>(!brand||p.brand===brand)&&(!type||p.type===type)&&(!voltage||p.voltage===voltage)&&(price==='all'||price==='under200'&&p.price<200||price==='200to300'&&p.price>=200&&p.price<=300||price==='above300'&&p.price>300));renderProducts(filteredProducts)}
 function resetFilters(){['finderBrand','finderType','finderVoltage'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const price=document.getElementById('finderPrice');if(price)price.value='all';const search=document.getElementById('searchInput');if(search)search.value='';const mobile=document.getElementById('mobileSearchInput');if(mobile)mobile.value='';const clear=document.getElementById('clearSearchBtn');if(clear)clear.classList.add('hidden');filteredProducts=[...productsData];renderProducts(filteredProducts);showToast('Catalogue reset.')}
-function handleSearch(){const q=document.getElementById('searchInput').value.toLowerCase().trim();document.getElementById('clearSearchBtn').classList.toggle('hidden',!q);filteredProducts=productsData.filter(p=>`${p.name} ${p.partNo} ${p.brand} ${p.type} ${p.voltage}`.toLowerCase().includes(q));renderProducts(filteredProducts)}
-function handleMobileSearch(){const q=document.getElementById('mobileSearchInput').value.toLowerCase().trim();filteredProducts=productsData.filter(p=>`${p.name} ${p.partNo} ${p.brand} ${p.type} ${p.voltage}`.toLowerCase().includes(q));renderProducts(filteredProducts)}
-function clearSearch(){document.getElementById('searchInput').value='';document.getElementById('clearSearchBtn').classList.add('hidden');filteredProducts=[...productsData];renderProducts(filteredProducts)}
-function toggleMobileSearch(){document.getElementById('mobileSearchBox').classList.toggle('hidden')}
+/* === Smart Product Search: suggestions from the already-loaded Supabase catalogue === */
+const aaaSmartSearchState={desktop:{matches:[],active:-1},mobile:{matches:[],active:-1}};
+
+function aaaSearchNormalise(value){
+  return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ');
+}
+function aaaSearchScore(product,query){
+  const q=aaaSearchNormalise(query);
+  if(!q) return 0;
+  const name=aaaSearchNormalise(product.name),part=aaaSearchNormalise(product.partNo),brand=aaaSearchNormalise(product.brand);
+  const category=aaaSearchNormalise(product.category),type=aaaSearchNormalise(product.type);
+  const voltage=aaaSearchNormalise(product.voltage),vehicle=aaaSearchNormalise(product.vehicle);
+  const haystack=[name,part,brand,category,type,voltage,vehicle].join(' ');
+  if(!q.split(' ').every(word=>haystack.includes(word)))return -1;
+  let score=1;
+  if(part===q)score+=120;
+  else if(part.startsWith(q))score+=85;
+  if(name===q)score+=100;
+  else if(name.startsWith(q))score+=65;
+  else if(name.includes(q))score+=38;
+  if(brand===q)score+=35;
+  else if(brand.startsWith(q))score+=15;
+  if(category.includes(q))score+=12;
+  if(type===q)score+=18;
+  return score;
+}
+function aaaSearchProducts(query){
+  if(!aaaSearchNormalise(query))return [...productsData];
+  return productsData.map((product,index)=>({product,index,score:aaaSearchScore(product,query)}))
+    .filter(result=>result.score>=0)
+    .sort((a,b)=>b.score-a.score||a.index-b.index)
+    .map(result=>result.product);
+}
+function aaaCloseSearchSuggestions(){
+  ['desktop','mobile'].forEach(mode=>{
+    const capital=mode==='desktop'?'Desktop':'Mobile';
+    const panel=document.getElementById('aaaSmart'+capital);
+    const input=document.getElementById(mode==='desktop'?'searchInput':'mobileSearchInput');
+    if(panel)panel.hidden=true;
+    if(input){input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');}
+    aaaSmartSearchState[mode].active=-1;
+  });
+}
+function aaaSmartSelectProduct(product){
+  aaaCloseSearchSuggestions();
+  openProductDetails(product.id);
+}
+function aaaSmartShowAll(){
+  aaaCloseSearchSuggestions();
+  const section=document.getElementById('productsSection');
+  if(section)section.scrollIntoView({behavior:window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+}
+function aaaSmartCreateOption(product,index,mode){
+  const option=document.createElement('button');
+  option.type='button';option.className='aaa-smart-item';option.id='aaaSmart'+(mode==='desktop'?'Desktop':'Mobile')+'Option'+index;
+  option.setAttribute('role','option');option.setAttribute('aria-selected','false');
+  const thumb=document.createElement('span');thumb.className='aaa-smart-thumb';
+  let src=product.image||'';
+  if(!src&&typeof PRODUCT_IMAGES!=='undefined'){
+    const name=String(product.name||'');
+    src=name.includes('CHROME')?PRODUCT_IMAGES.chrome:name.includes('SILVER')?PRODUCT_IMAGES.silver:PRODUCT_IMAGES.h7;
+  }
+  if(src){
+    const image=document.createElement('img');image.src=src;image.alt='';image.loading='lazy';
+    image.onerror=()=>{image.remove();const icon=document.createElement('i');icon.className='fa-solid fa-box-open';thumb.appendChild(icon)};
+    thumb.appendChild(image);
+  }else{const icon=document.createElement('i');icon.className='fa-solid fa-box-open';thumb.appendChild(icon)}
+  const info=document.createElement('span');info.className='aaa-smart-info';
+  const name=document.createElement('span');name.className='aaa-smart-name';name.textContent=product.name||'Product';
+  const meta=document.createElement('span');meta.className='aaa-smart-meta';
+  meta.textContent=[product.brand,product.partNo&&product.partNo!=='—'?'Part No: '+product.partNo:''].filter(Boolean).join(' · ');
+  info.append(name,meta);
+  const money=document.createElement('span');money.className='aaa-smart-money';
+  const sale=getProductOffer(product);
+  const price=document.createElement('span');price.className='aaa-smart-price'+(sale?' aaa-smart-sale':'');
+  price.textContent=formatProductCurrency(product.price||0);money.appendChild(price);
+  if(sale){const mrp=document.createElement('span');mrp.className='aaa-smart-mrp';mrp.textContent=formatProductCurrency(sale.mrp);money.appendChild(mrp)}
+  option.append(thumb,info,money);
+  option.addEventListener('click',()=>aaaSmartSelectProduct(product));
+  option.addEventListener('mouseenter',()=>aaaSmartSetActive(mode,index));
+  return option;
+}
+function aaaSmartSetActive(mode,index){
+  const state=aaaSmartSearchState[mode];state.active=index;
+  const capital=mode==='desktop'?'Desktop':'Mobile';
+  const list=document.getElementById('aaaSmart'+capital+'List');
+  const input=document.getElementById(mode==='desktop'?'searchInput':'mobileSearchInput');
+  if(!list||!input)return;
+  Array.from(list.querySelectorAll('.aaa-smart-item')).forEach((el,i)=>el.setAttribute('aria-selected',i===index?'true':'false'));
+  const active=document.getElementById('aaaSmart'+capital+'Option'+index);
+  if(active){input.setAttribute('aria-activedescendant',active.id);active.scrollIntoView({block:'nearest'});}
+  else input.removeAttribute('aria-activedescendant');
+}
+function aaaRenderSmartSuggestions(mode,query,matches){
+  const capital=mode==='desktop'?'Desktop':'Mobile';
+  const panel=document.getElementById('aaaSmart'+capital);
+  const list=document.getElementById('aaaSmart'+capital+'List');
+  const count=document.getElementById('aaaSmart'+capital+'Count');
+  const all=document.getElementById('aaaSmart'+capital+'All');
+  const input=document.getElementById(mode==='desktop'?'searchInput':'mobileSearchInput');
+  if(!panel||!list||!count||!all||!input)return;
+  const state=aaaSmartSearchState[mode];state.active=-1;state.matches=matches.slice(0,5);
+  input.removeAttribute('aria-activedescendant');
+  if(!aaaSearchNormalise(query)){panel.hidden=true;input.setAttribute('aria-expanded','false');return;}
+  list.replaceChildren();
+  count.textContent=matches.length+' '+(matches.length===1?'result':'results');
+  if(matches.length){state.matches.forEach((product,i)=>list.appendChild(aaaSmartCreateOption(product,i,mode)));}
+  else{
+    const empty=document.createElement('div');empty.className='aaa-smart-empty';
+    const icon=document.createElement('i');icon.className='fa-solid fa-magnifying-glass';icon.setAttribute('aria-hidden','true');
+    const message=document.createElement('span');message.textContent='No matching products found';
+    empty.append(icon,message);list.appendChild(empty);
+  }
+  all.hidden=!matches.length;
+  all.textContent='View all '+matches.length+' matching '+(matches.length===1?'product':'products')+'  →';
+  panel.hidden=false;input.setAttribute('aria-expanded','true');
+}
+function aaaHandleSmartSearch(mode){
+  const primary=document.getElementById(mode==='desktop'?'searchInput':'mobileSearchInput');
+  const secondary=document.getElementById(mode==='desktop'?'mobileSearchInput':'searchInput');
+  if(!primary)return;
+  const query=primary.value;
+  if(secondary)secondary.value=query;
+  const clear=document.getElementById('clearSearchBtn');
+  if(clear)clear.classList.toggle('hidden',!aaaSearchNormalise(query));
+  filteredProducts=aaaSearchProducts(query);
+  renderProducts(filteredProducts);
+  aaaCloseSearchSuggestions();
+  aaaRenderSmartSuggestions(mode,query,filteredProducts);
+}
+function aaaRefreshSmartSearchAfterProductsLoad(){
+  const desktop=document.getElementById('searchInput');
+  const mobile=document.getElementById('mobileSearchInput');
+  const query=(desktop&&desktop.value)||(mobile&&mobile.value)||'';
+  if(!aaaSearchNormalise(query))return;
+  filteredProducts=aaaSearchProducts(query);
+  renderProducts(filteredProducts);
+  if(desktop)desktop.value=query;
+  if(mobile)mobile.value=query;
+  const mode=document.activeElement===mobile?'mobile':'desktop';
+  if(document.activeElement===mobile||document.activeElement===desktop)aaaRenderSmartSuggestions(mode,query,filteredProducts);
+}
+function handleSearch(){aaaHandleSmartSearch('desktop')}
+function handleMobileSearch(){aaaHandleSmartSearch('mobile')}
+function clearSearch(){
+  const desktop=document.getElementById('searchInput'),mobile=document.getElementById('mobileSearchInput');
+  if(desktop)desktop.value='';if(mobile)mobile.value='';
+  const clear=document.getElementById('clearSearchBtn');if(clear)clear.classList.add('hidden');
+  aaaCloseSearchSuggestions();filteredProducts=[...productsData];renderProducts(filteredProducts);
+  if(desktop)desktop.focus();
+}
+function toggleMobileSearch(){
+  const box=document.getElementById('mobileSearchBox');
+  if(!box)return;
+  box.classList.toggle('hidden');
+  if(box.classList.contains('hidden'))aaaCloseSearchSuggestions();
+  else{
+    const input=document.getElementById('mobileSearchInput');
+    if(input){input.focus();if(aaaSearchNormalise(input.value))aaaRenderSmartSuggestions('mobile',input.value,aaaSearchProducts(input.value));}
+  }
+}
+function aaaInitSmartSearch(){
+  ['desktop','mobile'].forEach(mode=>{
+    const input=document.getElementById(mode==='desktop'?'searchInput':'mobileSearchInput');
+    if(!input)return;
+    input.addEventListener('focus',()=>{
+      if(aaaSearchNormalise(input.value)){
+        aaaCloseSearchSuggestions();aaaRenderSmartSuggestions(mode,input.value,aaaSearchProducts(input.value));
+      }
+    });
+    input.addEventListener('keydown',event=>{
+      const state=aaaSmartSearchState[mode];
+      const panel=document.getElementById(mode==='desktop'?'aaaSmartDesktop':'aaaSmartMobile');
+      if(event.key==='Escape'){aaaCloseSearchSuggestions();return;}
+      if(event.key==='Tab'){aaaCloseSearchSuggestions();return;}
+      if(!panel||panel.hidden)return;
+      if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+        if(!state.matches.length)return;
+        event.preventDefault();
+        const next=event.key==='ArrowDown'?(state.active+1)%state.matches.length:(state.active<0?state.matches.length-1:(state.active-1+state.matches.length)%state.matches.length);
+        aaaSmartSetActive(mode,next);
+      }else if(event.key==='Enter'){
+        event.preventDefault();
+        if(state.active>=0&&state.matches[state.active])aaaSmartSelectProduct(state.matches[state.active]);
+        else aaaSmartShowAll();
+      }
+    });
+  });
+  ['aaaSmartDesktopAll','aaaSmartMobileAll'].forEach(id=>{
+    const button=document.getElementById(id);if(button)button.addEventListener('click',aaaSmartShowAll);
+  });
+  document.addEventListener('pointerdown',event=>{
+    if(!event.target.closest('#searchInput, #aaaSmartDesktop, #mobileSearchBox'))aaaCloseSearchSuggestions();
+  });
+}
+aaaInitSmartSearch();
+/* === End Smart Product Search === */
 let detailsProductId=null;
 let detailsQuantity=1;
 let detailsImages=[];
@@ -2725,6 +3038,60 @@ const AAA_DEFAULT_BANNERS = [{"image": "data:image/webp;base64,UklGRrj1BABXRUJQV
  window.addEventListener('DOMContentLoaded',load);
 })();
 
+</script>
+
+<script id="aaa-professional-animations">
+/* Small, isolated visual enhancements. No cart, payment, banner or product data logic changed. */
+(function(){
+  'use strict';
+  function initAAAMotion(){
+    if(!window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if('IntersectionObserver' in window){
+      var targets=[
+        '#partsFinder > div:first-child',
+        '#productsSection > div:first-child',
+        '#trackOrderSection > div:first-child',
+        'section.bg-slate-100 > div:first-child',
+        'footer > div:first-child'
+      ];
+      var observer=new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            entry.target.classList.remove('aaa-reveal-pending');
+            entry.target.classList.add('aaa-reveal-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },{threshold:0.07,rootMargin:'0px 0px -15px 0px'});
+      targets.forEach(function(selector){
+        var el=document.querySelector(selector);
+        if(!el) return;
+        /* Don't hide elements already in view on the first frame. */
+        var rect=el.getBoundingClientRect();
+        if(rect.top > window.innerHeight*0.85){
+          el.classList.add('aaa-reveal-pending');
+          observer.observe(el);
+        }
+      });
+    }
+    /* Small one-shot cart-count bounce after a customer adds an item. */
+    var badge=document.getElementById('cartCountBadge');
+    if(badge && 'MutationObserver' in window){
+      var last=badge.textContent.trim();
+      new MutationObserver(function(){
+        var now=badge.textContent.trim();
+        if(now===last) return;
+        last=now;
+        badge.classList.remove('aaa-cart-pop');
+        void badge.offsetWidth;
+        badge.classList.add('aaa-cart-pop');
+      }).observe(badge,{childList:true,subtree:true,characterData:true});
+      badge.addEventListener('animationend',function(){badge.classList.remove('aaa-cart-pop')});
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAAAMotion,{once:true});
+  else initAAAMotion();
+})();
 </script>
 </body>
 </html>
