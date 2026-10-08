@@ -380,6 +380,69 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
 @media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.aaa-recent-tile:hover{border-color:#fbbf24;box-shadow:0 6px 16px rgba(15,23,42,.10);transform:translateY(-2px)}}
 @media(prefers-reduced-motion:reduce){.aaa-recent-tile{transition:none}}
 /* === End Recently Viewed === */
+
+/* === Mobile Product Details Sticky Add to Cart (scoped, desktop unchanged) === */
+#aaaStickyDetailsBar { display: none; }
+@media (max-width: 639px) {
+  #aaaStickyDetailsBar.aaa-sticky-visible {
+    position: fixed;
+    z-index: 70;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -7px 26px rgba(15, 23, 42, .13);
+  }
+  #aaaStickyDetailsAction {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 44px;
+    width: min(55%, 200px);
+    border-radius: 11px;
+    background: #d97706;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    transition: background-color .18s ease, transform .18s ease;
+  }
+  #aaaStickyDetailsAction:not(:disabled):active { transform: scale(.98); }
+  #aaaStickyDetailsAction:disabled { background: #94a3b8; cursor: not-allowed; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #aaaStickyDetailsAction { transition: none !important; }
+}
+@media print { #aaaStickyDetailsBar { display: none !important; } }
+/* === End Mobile Product Details Sticky Add to Cart === */
+
+/* === Wishlist: compact saved-products convenience === */
+.aaa-wishlist-heart{position:absolute;right:9px;bottom:9px;z-index:3;width:35px;height:35px;border-radius:50%;background:#fff;border:1px solid #e2e8f0;box-shadow:0 2px 8px #0f172a1c;color:#64748b;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .16s,border-color .16s,color .16s}
+.aaa-wishlist-heart[aria-pressed="true"],#aaaWishlistDetailsBtn[aria-pressed="true"]{color:#e11d48;background:#fff1f2;border-color:#fecdd3}
+.aaa-wishlist-heart:hover{border-color:#fb7185;color:#e11d48}
+.aaa-wishlist-heart:focus-visible,#aaaWishlistDetailsBtn:focus-visible,.aaa-wish-tile:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+#aaaWishlistSection[hidden]{display:none!important}
+.aaa-wish-list{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 1px 8px;-webkit-overflow-scrolling:touch}
+.aaa-wish-tile{flex:0 0 156px;scroll-snap-align:start;text-align:left;background:#fff;border:1px solid #e2e8f0;border-radius:13px;overflow:hidden;transition:box-shadow .18s ease,border-color .18s ease}
+.aaa-wish-tile:hover{border-color:#fbbf24;box-shadow:0 5px 14px #0f172a15}
+.aaa-wish-photo{display:flex;height:105px;background:#f8fafc;align-items:center;justify-content:center;border-bottom:1px solid #f1f5f9}
+.aaa-wish-photo img{width:100%;height:100%;object-fit:contain;padding:8px}
+.aaa-wish-body{display:block;padding:9px 10px}
+.aaa-wish-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:32px;font-size:12px;font-weight:700;line-height:1.35;color:#0f172a}
+@media(min-width:640px){.aaa-wish-tile{flex-basis:177px}.aaa-wish-photo{height:118px}}
+@media(prefers-reduced-motion:reduce){.aaa-wishlist-heart,.aaa-wish-tile{transition:none!important}}
+/* === End Wishlist === */
+/* Compact category strip: swipe when there are multiple categories. */
+.aaa-category-strip{scrollbar-width:thin;scrollbar-color:#e2e8f0 transparent}
+.aaa-category-strip > button:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+@media (max-width:639px){#partsFinder .aaa-category-strip{padding-bottom:2px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -395,12 +458,6 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
 
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
-
-<!-- TOP BAR -->
-<div class="bg-slate-950 text-amber-400 text-xs py-2 px-4 flex items-center justify-between gap-4">
-  <div class="flex items-center gap-2"><span class="bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded-full uppercase text-[9px]">Notice</span><span>Online Payment Only via UPI / Net Banking (COD Coming Soon!)</span></div>
-  <div class="hidden md:flex items-center gap-5 text-slate-300"><a id="headerPhoneLink" href="#" class="hover:text-white"><i class="fa-solid fa-phone text-amber-400 mr-1"></i> <span id="headerPhoneNumber"></span></a><span><i class="fa-solid fa-location-dot text-amber-400 mr-1"></i> Jalna, Maharashtra</span></div>
-</div>
 
 <!-- HEADER -->
 <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-xl border-b border-slate-800">
@@ -516,31 +573,27 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
   </div>
 </section>
 
-<!-- SHOP BY CATEGORIES -->
-<section id="partsFinder" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 relative z-20">
-  <div class="bg-white rounded-2xl shadow-lg p-4 md:p-5 border border-slate-200/80">
-    <div class="flex items-center justify-between gap-3 mb-3">
+<!-- SHOP BY CATEGORIES: compact horizontal bar -->
+<section id="partsFinder" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-2 relative z-20">
+  <div class="bg-white rounded-xl shadow-sm px-3 py-2.5 md:px-4 md:py-3 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+    <div class="flex items-center justify-between gap-3 sm:shrink-0">
       <div class="flex items-center gap-2">
-        <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-          <i class="fa-solid fa-layer-group"></i>
+        <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
         </span>
-        <div>
-          <h2 class="text-base md:text-lg font-extrabold text-slate-900">Shop by Categories</h2>
-          <p class="text-[10px] md:text-xs text-slate-500">Tap a category to view matching products</p>
-        </div>
+        <h2 class="text-sm md:text-base font-extrabold text-slate-900 whitespace-nowrap">Shop by Categories</h2>
       </div>
-      <button type="button" onclick="showAllCategoriesProducts()" class="shrink-0 text-[10px] md:text-xs font-bold text-amber-700 hover:text-amber-800">View All</button>
+      <button type="button" onclick="showAllCategoriesProducts()" class="sm:hidden shrink-0 text-xs font-bold text-amber-700 hover:text-amber-800">View All</button>
     </div>
-
-    <div id="categoryGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-      <div class="col-span-2 sm:col-span-3 lg:col-span-6 text-center text-xs text-slate-400 py-4">Loading categories...</div>
+    <div id="categoryGrid" class="flex flex-1 items-center gap-2 overflow-x-auto min-w-0 py-0.5 aaa-category-strip" aria-label="Product categories">
+      <div class="text-xs text-slate-400 py-1">Loading categories...</div>
     </div>
-
+    <button type="button" onclick="showAllCategoriesProducts()" class="hidden sm:block shrink-0 text-xs font-bold text-amber-700 hover:text-amber-800">View All</button>
   </div>
 </section>
 
 <!-- PRODUCTS -->
-<main id="productsSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+<main id="productsSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 md:pt-6 pb-10 flex-1 w-full">
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"><div><h2 class="text-2xl font-bold text-slate-900">Product Catalogue</h2><p class="text-xs text-slate-500">Current products from Amber Auto Agencies</p></div><div class="flex flex-wrap items-center gap-3"><span class="text-xs font-medium text-slate-500" id="resultsCount" aria-live="polite">Loading products...</span><button type="button" id="aaaFilterToggle" onclick="aaaToggleFilters()" aria-controls="aaaFilterControls" aria-expanded="false" class="aaa-filter-trigger"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filter Products</span><span id="aaaActiveFilterCount" class="aaa-filter-badge" hidden></span><i class="fa-solid fa-chevron-down aaa-filter-chevron" aria-hidden="true"></i></button></div></div>
   <!-- Compact catalogue filters; only visible when customers request them. -->
   <div id="aaaFilterControls" class="aaa-filter-panel" hidden>
@@ -569,6 +622,18 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
     <button type="button" class="aaa-recent-clear" onclick="aaaClearRecentlyViewed()" aria-label="Clear recently viewed products">Clear history</button>
   </div>
   <div id="aaaRecentlyViewedList" class="aaa-recent-list" aria-label="Recently viewed product list"></div>
+</section>
+
+<!-- WISHLIST: only appears after a customer saves a product -->
+<section id="aaaWishlistSection" hidden aria-label="Saved products" class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-9">
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <div>
+      <h2 class="text-base sm:text-lg font-extrabold text-slate-900"><i class="fa-solid fa-heart text-rose-500 mr-2" aria-hidden="true"></i>Saved Products</h2>
+      <p class="text-[11px] text-slate-500">Your wishlist on this device</p>
+    </div>
+    <button type="button" onclick="aaaClearWishlist()" class="aaa-recent-clear" aria-label="Clear saved products">Clear all</button>
+  </div>
+  <div id="aaaWishlistList" class="aaa-wish-list" aria-label="Saved product list"></div>
 </section>
 
 <!-- TRACK ORDER MODAL -->
@@ -843,6 +908,10 @@ Automotive electrical parts and accessories. Contact us for product availability
                       class="shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center shadow-sm">
                 <i class="fa-solid fa-share-nodes text-base"></i>
               </button>
+              <button id="aaaWishlistDetailsBtn" type="button" onclick="aaaToggleWishlist(detailsProductId)" aria-label="Save to wishlist" aria-pressed="false" title="Save to wishlist"
+                      class="shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-xl border border-slate-300 bg-white text-slate-600 flex items-center justify-center shadow-sm">
+                <i class="fa-regular fa-heart text-base" aria-hidden="true"></i>
+              </button>
             </div>
 
             <div class="mt-2 sm:mt-4">
@@ -883,7 +952,7 @@ Automotive electrical parts and accessories. Contact us for product availability
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 sm:gap-3 mt-3 sm:mt-5 min-w-0">
+            <div id="aaaOriginalDetailsActions" class="grid grid-cols-2 gap-2 sm:gap-3 mt-3 sm:mt-5 min-w-0">
               <button id="detailsAddCartBtn"
                       onclick="addDetailsToCart()"
                       class="w-full min-w-0 bg-white hover:bg-amber-50 border-2 border-amber-500 text-amber-700 px-1.5 sm:px-3 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2">
@@ -909,6 +978,17 @@ Automotive electrical parts and accessories. Contact us for product availability
         </div>
       </div>
     </div>
+  </div>
+  <!-- Visible on phones when the regular Product Details buttons are outside the viewport -->
+  <div id="aaaStickyDetailsBar" aria-label="Mobile quick add to cart">
+    <div class="min-w-0 flex-1">
+      <span class="block text-[10px] font-semibold text-slate-500">Total Price</span>
+      <strong id="aaaStickyDetailsPrice" class="block text-xl leading-tight font-black text-slate-950" aria-live="polite"></strong>
+    </div>
+    <button id="aaaStickyDetailsAction" type="button" onclick="addDetailsToCart()">
+      <i class="fa-solid fa-cart-plus" aria-hidden="true"></i>
+      <span id="aaaStickyDetailsActionLabel">Add to Cart</span>
+    </button>
   </div>
 </div>
 
@@ -1203,6 +1283,7 @@ async function loadProductsFromSupabase() {
         renderProducts(filteredProducts);
         aaaRefreshSmartSearchAfterProductsLoad();
         aaaRenderRecentlyViewed();
+        aaaRenderWishlist();
         return;
     }
 
@@ -1216,6 +1297,7 @@ async function loadProductsFromSupabase() {
         renderProducts(filteredProducts);
         aaaRefreshSmartSearchAfterProductsLoad();
         aaaRenderRecentlyViewed();
+        aaaRenderWishlist();
         return;
     }
 
@@ -1253,6 +1335,7 @@ async function loadProductsFromSupabase() {
     renderProducts(filteredProducts);
         aaaRefreshSmartSearchAfterProductsLoad();
         aaaRenderRecentlyViewed();
+        aaaRenderWishlist();
 
     console.log(
         "Products loaded from Supabase:",
@@ -1286,8 +1369,9 @@ function renderProducts(items){
         src="${p.image}"
         alt="${p.name}"
         style="width:100%;height:100%;object-fit:contain;padding:8px;">
-` : productVisual(p)}<span class="absolute top-3 left-3 bg-slate-900 text-amber-400 text-[10px] font-black uppercase px-2.5 py-1 rounded-md">${p.brand}</span><span class="absolute top-3 right-3 bg-white text-slate-700 text-[10px] font-bold px-2 py-1 rounded-md shadow">${p.type}</span></div><div class="p-2.5 flex-1"><div class="text-[10px] font-mono text-slate-400 mb-1">PART NO: ${p.partNo}</div><h3 class="font-bold text-slate-900 text-sm leading-snug line-clamp-2">${p.name}</h3></div><div class="p-2.5 pt-2 border-t border-slate-100 mt-1"><div class="flex items-end justify-between gap-2 mb-2"><div><span class="text-[10px] text-slate-400 block font-semibold">Selling Price</span><span class="text-base font-black text-slate-900">${formatProductCurrency(p.price)}</span>${offer?`<span class="ml-1 text-xs text-slate-400 line-through font-semibold whitespace-nowrap">${formatProductCurrency(offer.mrp)}</span><span class="aaa-sale-badge">${offer.percent}% OFF</span>`:''}</div><span class="text-[10px] text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Available</span></div><div class="aaa-product-actions grid grid-cols-2 gap-2"><button onclick="openProductDetails(${p.id})" class="col-span-2 bg-slate-100 hover:bg-slate-200 text-slate-800 px-2 py-2 rounded-lg text-[10px] font-extrabold flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-eye"></i><span>View Product Details</span></button><button id="cartAction-${p.id}" onclick="handleProductCartAction(${p.id})" class="bg-white hover:bg-amber-50 border-2 border-amber-500 text-amber-700 px-2 py-2 rounded-lg text-[10px] font-extrabold flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-cart-plus"></i><span>Add to Cart</span></button><button onclick="buyNow(${p.id})" class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-2 py-2 rounded-lg text-[10px] font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm"><i class="fa-solid fa-bolt"></i><span>Buy Now</span></button></div></div></article>`}).join('');
+` : productVisual(p)}<span class="absolute top-3 left-3 bg-slate-900 text-amber-400 text-[10px] font-black uppercase px-2.5 py-1 rounded-md">${p.brand}</span><span class="absolute top-3 right-3 bg-white text-slate-700 text-[10px] font-bold px-2 py-1 rounded-md shadow">${p.type}</span><button type="button" class="aaa-wishlist-heart" aria-label="${aaaIsWishlisted(p.id)?'Remove from':'Save to'} wishlist" aria-pressed="${aaaIsWishlisted(p.id)}" title="${aaaIsWishlisted(p.id)?'Remove from Wishlist':'Save to Wishlist'}" onclick="event.stopPropagation();aaaToggleWishlist(${p.id})"><i class="fa-${aaaIsWishlisted(p.id)?'solid':'regular'} fa-heart" aria-hidden="true"></i></button></div><div class="p-2.5 flex-1"><div class="text-[10px] font-mono text-slate-400 mb-1">PART NO: ${p.partNo}</div><h3 class="font-bold text-slate-900 text-sm leading-snug line-clamp-2">${p.name}</h3></div><div class="p-2.5 pt-2 border-t border-slate-100 mt-1"><div class="flex items-end justify-between gap-2 mb-2"><div><span class="text-[10px] text-slate-400 block font-semibold">Selling Price</span><span class="text-base font-black text-slate-900">${formatProductCurrency(p.price)}</span>${offer?`<span class="ml-1 text-xs text-slate-400 line-through font-semibold whitespace-nowrap">${formatProductCurrency(offer.mrp)}</span><span class="aaa-sale-badge">${offer.percent}% OFF</span>`:''}</div><span class="text-[10px] text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Available</span></div><div class="aaa-product-actions grid grid-cols-2 gap-2"><button onclick="openProductDetails(${p.id})" class="col-span-2 bg-slate-100 hover:bg-slate-200 text-slate-800 px-2 py-2 rounded-lg text-[10px] font-extrabold flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-eye"></i><span>View Product Details</span></button><button id="cartAction-${p.id}" onclick="handleProductCartAction(${p.id})" class="bg-white hover:bg-amber-50 border-2 border-amber-500 text-amber-700 px-2 py-2 rounded-lg text-[10px] font-extrabold flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-cart-plus"></i><span>Add to Cart</span></button><button onclick="buyNow(${p.id})" class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-2 py-2 rounded-lg text-[10px] font-extrabold flex items-center justify-center gap-1.5 transition shadow-sm"><i class="fa-solid fa-bolt"></i><span>Buy Now</span></button></div></div></article>`}).join('');
  setTimeout(updateProductCartButtons,0);
+ aaaUpdateWishlistButtons();
 }
 
 function getCategoryIcon(category){
@@ -1387,9 +1471,8 @@ function renderCategoryCards(){
  if(!grid) return;
 
  const categoryItems=getAvailableCategories();
-
  if(!categoryItems.length){
-   grid.innerHTML='<div class="col-span-2 sm:col-span-3 lg:col-span-6 text-center text-xs text-slate-400 py-4">No categories available yet.</div>';
+   grid.innerHTML='<div class="text-xs text-slate-400 py-1">No categories available yet.</div>';
    return;
  }
 
@@ -1399,13 +1482,10 @@ function renderCategoryCards(){
    const encoded=encodeURIComponent(category);
    const icon=getCategoryIcon(category);
    const count=item.count;
-   return `<button type="button" onclick="filterByCategory(decodeURIComponent('${encoded}'))" class="group text-left rounded-2xl border border-slate-200 bg-slate-50 hover:bg-amber-50 hover:border-amber-300 p-3 transition-all shadow-sm hover:shadow-md">
-     <div class="flex items-center justify-between gap-2">
-       <span class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-amber-500 flex items-center justify-center text-lg group-hover:border-amber-300"><i class="fa-solid ${icon}"></i></span>
-       <span class="text-[9px] font-bold text-slate-400">${count} ${count===1?'item':'items'}</span>
-     </div>
-     <div class="mt-2 text-xs md:text-sm font-extrabold text-slate-800 leading-tight">${safe}</div>
-     <div class="mt-1 text-[9px] text-amber-700 font-semibold">View products <i class="fa-solid fa-arrow-right ml-1"></i></div>
+   return `<button type="button" onclick="filterByCategory(decodeURIComponent('${encoded}'))" class="group shrink-0 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 hover:bg-amber-50 hover:border-amber-300 px-3 py-2 transition-all shadow-sm hover:shadow-md text-left" aria-label="View ${safe} products">
+     <i class="fa-solid ${icon} text-amber-500 text-sm" aria-hidden="true"></i>
+     <span class="text-xs md:text-sm font-bold text-slate-800 whitespace-nowrap">${safe}</span>
+     <span class="rounded-full bg-white border border-slate-200 text-[10px] font-bold text-slate-500 px-1.5 py-0.5" aria-label="${count} products">${count}</span>
    </button>`;
  }).join('');
 }
@@ -1746,6 +1826,124 @@ document.getElementById('aaaRecentlyViewedList')?.addEventListener('click',event
 });
 /* === End Recently Viewed Products === */
 
+/* === Wishlist: browser-local IDs, current live catalogue for display === */
+const AAA_WISHLIST_KEY='aaa-wishlist-ids-v1';
+let aaaWishlistMemory=[];
+function aaaWishlistRead(){
+  try {
+    const value=JSON.parse(localStorage.getItem(AAA_WISHLIST_KEY)||'[]');
+    return Array.isArray(value)?[...new Set(value.filter(x=>['number','string'].includes(typeof x)).map(String))].slice(0,50):[];
+  } catch(_error){return aaaWishlistMemory.slice();}
+}
+function aaaWishlistWrite(ids){
+  aaaWishlistMemory=ids.slice(0,50);
+  try{localStorage.setItem(AAA_WISHLIST_KEY,JSON.stringify(aaaWishlistMemory));}catch(_error){}
+}
+function aaaIsWishlisted(id){return aaaWishlistRead().includes(String(id));}
+function aaaToggleWishlist(id){
+  if(id===null||id===undefined)return;
+  const product=productsData.find(p=>String(p.id)===String(id));
+  if(!product)return;
+  const ids=aaaWishlistRead();const key=String(id);
+  const alreadySaved=ids.includes(key);
+  aaaWishlistWrite(alreadySaved?ids.filter(x=>x!==key):[key,...ids]);
+  aaaUpdateWishlistButtons();aaaRenderWishlist();
+  if(typeof showToast==='function')showToast(alreadySaved?'Removed from saved products':'Product saved to wishlist');
+}
+function aaaClearWishlist(){
+  aaaWishlistMemory=[];
+  try{localStorage.removeItem(AAA_WISHLIST_KEY);}catch(_error){}
+  aaaUpdateWishlistButtons();aaaRenderWishlist();
+}
+function aaaUpdateWishlistDetailsButton(){
+  const btn=document.getElementById('aaaWishlistDetailsBtn');
+  if(!btn)return;
+  const saved=detailsProductId!==null&&aaaIsWishlisted(detailsProductId);
+  btn.setAttribute('aria-pressed',String(saved));
+  btn.setAttribute('aria-label',saved?'Remove from wishlist':'Save to wishlist');
+  btn.title=saved?'Remove from Wishlist':'Save to Wishlist';
+  const icon=btn.querySelector('i');if(icon)icon.className=`fa-${saved?'solid':'regular'} fa-heart text-base`;
+}
+function aaaUpdateWishlistButtons(){
+  document.querySelectorAll('#productGrid .aaa-wishlist-heart').forEach(btn=>{
+    const productCard=btn.closest('article');
+    if(!productCard)return;
+    // Card's existing product-details button provides the same ID.
+    const opener=productCard.querySelector('[onclick^="openProductDetails("]');
+    const id=opener?.getAttribute('onclick')?.match(/openProductDetails\((\d+)\)/)?.[1];
+    if(!id)return;
+    const saved=aaaIsWishlisted(id);
+    btn.setAttribute('aria-pressed',String(saved));
+    btn.setAttribute('aria-label',saved?'Remove from wishlist':'Save to wishlist');
+    btn.title=saved?'Remove from Wishlist':'Save to Wishlist';
+    const icon=btn.querySelector('i');if(icon)icon.className=`fa-${saved?'solid':'regular'} fa-heart`;
+  });
+  aaaUpdateWishlistDetailsButton();
+}
+function aaaRenderWishlist(){
+  const section=document.getElementById('aaaWishlistSection');
+  const list=document.getElementById('aaaWishlistList');
+  if(!section||!list)return;
+  const items=aaaWishlistRead().map(id=>productsData.find(p=>String(p.id)===id)).filter(Boolean);
+  section.hidden=items.length===0;
+  if(!items.length){list.replaceChildren();return;}
+  list.innerHTML=items.map(p=>{
+    const photo=p.image?`<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy">`:'<i class="fa-solid fa-box-open text-3xl text-slate-300" aria-hidden="true"></i>';
+    return `<button type="button" class="aaa-wish-tile" data-aaa-wish-id="${escapeHtml(p.id)}" aria-label="View ${escapeHtml(p.name)}">`+
+      `<span class="aaa-wish-photo">${photo}</span><span class="aaa-wish-body">`+
+      `<span class="aaa-wish-name">${escapeHtml(p.name)}</span>`+
+      `<span class="block text-[10px] text-slate-500 mt-1">${escapeHtml(p.brand||'')}</span>`+
+      `<span class="block text-sm font-extrabold text-slate-900 mt-1">${formatProductCurrency(p.price)}</span>`+
+      `</span></button>`;
+  }).join('');
+}
+document.getElementById('aaaWishlistList')?.addEventListener('click',event=>{
+  const tile=event.target.closest('button[data-aaa-wish-id]');
+  if(tile)openProductDetails(tile.dataset.aaaWishId);
+});
+/* === End Wishlist === */
+
+
+
+/* === Mobile Product Details Sticky Add to Cart === */
+function aaaSyncStickyDetailsCart(){
+  const modal=document.getElementById('productDetailsModal');
+  const sticky=document.getElementById('aaaStickyDetailsBar');
+  const regularActions=document.getElementById('aaaOriginalDetailsActions');
+  if(!modal||!sticky||!regularActions)return;
+  const onMobile=window.matchMedia('(max-width: 639px)').matches;
+  const modalOpen=!modal.classList.contains('hidden')&&detailsProductId!==null;
+  if(!onMobile||!modalOpen){sticky.classList.remove('aaa-sticky-visible');return;}
+
+  const p=productsData.find(x=>String(x.id)===String(detailsProductId));
+  if(!p){sticky.classList.remove('aaa-sticky-visible');return;}
+  document.getElementById('aaaStickyDetailsPrice').textContent=
+    formatProductCurrency(Number(p.price||0)*detailsQuantity);
+  const inStock=Number(p.stock||0)>0;
+  const action=document.getElementById('aaaStickyDetailsAction');
+  const label=document.getElementById('aaaStickyDetailsActionLabel');
+  action.disabled=!inStock;
+  label.textContent=inStock?'Add to Cart':'Out of Stock';
+  action.setAttribute('aria-label',inStock?'Add selected quantity to cart':'Product out of stock');
+
+  // Avoid displaying a second cart button when the regular one is on-screen.
+  const rect=regularActions.getBoundingClientRect();
+  const viewportHeight=window.innerHeight;
+  const regularVisible=rect.bottom>12&&rect.top<viewportHeight-12;
+  sticky.classList.toggle('aaa-sticky-visible',!regularVisible);
+}
+let aaaStickyScrollFrame=0;
+function aaaScheduleStickyDetailsCart(){
+  if(aaaStickyScrollFrame)return;
+  aaaStickyScrollFrame=requestAnimationFrame(()=>{
+    aaaStickyScrollFrame=0;
+    aaaSyncStickyDetailsCart();
+  });
+}
+document.getElementById('productDetailsModal')?.addEventListener('scroll',aaaScheduleStickyDetailsCart,{passive:true});
+window.addEventListener('resize',aaaScheduleStickyDetailsCart,{passive:true});
+/* === End Mobile Product Details Sticky Add to Cart === */
+
 function openProductDetails(id){
 
  const p=productsData.find(x=>String(x.id)===String(id));
@@ -1756,6 +1954,7 @@ function openProductDetails(id){
  }
 
  detailsProductId=p.id;
+ aaaUpdateWishlistDetailsButton();
  aaaRememberViewedProduct(p);
  detailsQuantity=1;
 
@@ -1824,6 +2023,7 @@ function openProductDetails(id){
 
  document.getElementById('productDetailsModal').classList.remove('hidden');
  document.body.classList.add('overflow-hidden');
+ aaaScheduleStickyDetailsCart();
 }
 
 
@@ -2006,6 +2206,7 @@ if(detailsZoomSlider){
 function closeProductDetails(){
 
  document.getElementById('productDetailsModal').classList.add('hidden');
+ document.getElementById('aaaStickyDetailsBar')?.classList.remove('aaa-sticky-visible');
  document.body.classList.remove('overflow-hidden');
 
  detailsProductId=null;
@@ -2019,6 +2220,7 @@ function changeDetailsQty(change){
  detailsQuantity=Math.max(1,detailsQuantity+change);
 
  document.getElementById('detailsQty').innerText=detailsQuantity;
+ aaaScheduleStickyDetailsCart();
 }
 
 function addDetailsToCart(){
@@ -3165,7 +3367,7 @@ function openSharedProductFromUrl(){
 }
 
 function showToast(message){const t=document.getElementById('toast');document.getElementById('toastMessage').innerText=message;t.classList.remove('hidden');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.add('hidden'),2500)}
-document.getElementById('currentYear').innerText=new Date().getFullYear();renderProducts(productsData);updateCartUI();
+document.getElementById('currentYear').innerText=new Date().getFullYear();renderProducts(productsData);aaaRenderWishlist();updateCartUI();
 
 document.addEventListener("DOMContentLoaded", function() {
     const invoiceToken = new URLSearchParams(window.location.search).get("invoice");
