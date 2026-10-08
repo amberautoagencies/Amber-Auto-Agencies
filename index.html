@@ -620,7 +620,7 @@ Automotive electrical parts and accessories. Contact us for product availability
           <!-- PRODUCT IMAGES -->
           <div class="min-w-0">
             <div id="detailsImageSlider"
-                 class="h-40 sm:h-80 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-slate-200 flex items-center justify-center overflow-hidden relative touch-pan-y min-w-0"
+                 class="h-[235px] sm:h-80 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-slate-200 flex items-center justify-center overflow-hidden relative touch-pan-y min-w-0"
                  ontouchstart="handleDetailsTouchStart(event)"
                  ontouchend="handleDetailsTouchEnd(event)">
 
@@ -1354,7 +1354,7 @@ function showDetailsImageAtIndex(index){
  const alt=p ? `${p.name} image ${detailsImageIndex+1}` : 'Product image';
 
  const mainImageBox=document.getElementById('detailsProductImage');
- mainImageBox.innerHTML=`<img src="${src}" alt="${alt}" style="width:100%;height:100%;object-fit:contain;padding:8px;">`;
+ mainImageBox.innerHTML=`<img src="${src}" alt="${alt}" style="width:100%;height:100%;object-fit:contain;padding:0;display:block;">`;
 
  document.querySelectorAll('#detailsImageThumbnails button').forEach((btn,i)=>{
    const active=i===detailsImageIndex;
