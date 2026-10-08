@@ -305,6 +305,25 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
 @media print{.aaa-reveal-pending,.aaa-reveal-visible{opacity:1!important;transform:none!important;animation:none!important}}
 /* === End professional motion enhancements === */
 
+/* === Compact Advanced Product Filters === */
+.aaa-filter-trigger{display:inline-flex;align-items:center;gap:8px;background:white;border:1px solid #fbbf24;border-radius:11px;padding:9px 13px;font-size:12px;font-weight:800;color:#92400e;cursor:pointer;transition:background .2s,box-shadow .2s}
+.aaa-filter-trigger:hover,.aaa-filter-trigger.aaa-filter-open{background:#fffbeb;box-shadow:0 3px 10px rgba(146,64,14,.08)}
+.aaa-filter-trigger:focus-visible,.aaa-filter-clear:focus-visible,.aaa-filter-fields select:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+.aaa-filter-chevron{font-size:10px;transition:transform .18s}.aaa-filter-open .aaa-filter-chevron{transform:rotate(180deg)}
+.aaa-filter-badge{background:#b45309;color:white;border-radius:999px;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;font-size:10px}
+.aaa-filter-badge[hidden],.aaa-filter-panel[hidden]{display:none!important}
+.aaa-filter-panel{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:18px;box-shadow:0 5px 18px rgba(15,23,42,.04)}
+.aaa-filter-heading{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:14px}
+.aaa-filter-heading strong{font-size:14px;color:#0f172a}.aaa-filter-heading p{font-size:11px;color:#64748b;margin:3px 0 0}
+.aaa-filter-clear{display:inline-flex;gap:5px;align-items:center;white-space:nowrap;font-size:11px;font-weight:800;color:#a16207;cursor:pointer}
+.aaa-filter-fields{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.aaa-filter-fields label{display:flex;flex-direction:column;gap:6px;min-width:0;color:#475569;font-weight:700;font-size:11px}
+.aaa-filter-fields select{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:10px 24px 10px 10px;min-height:41px;background:#f8fafc;color:#0f172a;font-size:12px;cursor:pointer}
+@media(max-width:900px){.aaa-filter-fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.aaa-filter-panel{padding:12px}.aaa-filter-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.aaa-filter-fields label:last-child{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.aaa-filter-trigger,.aaa-filter-chevron{transition:none}}
+/* === End Advanced Product Filters === */
+
 /* === Amber Auto Agencies: Smart Product Search === */
 .aaa-smart-results{
   position:absolute;left:0;right:0;top:calc(100% + 9px);z-index:65;
@@ -501,19 +520,23 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
       <div class="col-span-2 sm:col-span-3 lg:col-span-6 text-center text-xs text-slate-400 py-4">Loading categories...</div>
     </div>
 
-    <!-- Hidden legacy controls kept for compatibility with the existing catalogue JavaScript -->
-    <div class="hidden" aria-hidden="true">
-      <select id="finderBrand"><option value="">All Brands</option></select>
-      <select id="finderType"><option value="">All Types</option></select>
-      <select id="finderVoltage"><option value="">All Voltages</option></select>
-      <select id="finderPrice"><option value="all">Any Price</option></select>
-    </div>
   </div>
 </section>
 
 <!-- PRODUCTS -->
 <main id="productsSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"><div><h2 class="text-2xl font-bold text-slate-900">Product Catalogue</h2><p class="text-xs text-slate-500">Current products from Amber Auto Agencies</p></div><span class="text-xs font-medium text-slate-500" id="resultsCount">Loading products...</span></div>
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"><div><h2 class="text-2xl font-bold text-slate-900">Product Catalogue</h2><p class="text-xs text-slate-500">Current products from Amber Auto Agencies</p></div><div class="flex flex-wrap items-center gap-3"><span class="text-xs font-medium text-slate-500" id="resultsCount" aria-live="polite">Loading products...</span><button type="button" id="aaaFilterToggle" onclick="aaaToggleFilters()" aria-controls="aaaFilterControls" aria-expanded="false" class="aaa-filter-trigger"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filter Products</span><span id="aaaActiveFilterCount" class="aaa-filter-badge" hidden></span><i class="fa-solid fa-chevron-down aaa-filter-chevron" aria-hidden="true"></i></button></div></div>
+  <!-- Compact catalogue filters; only visible when customers request them. -->
+  <div id="aaaFilterControls" class="aaa-filter-panel" hidden>
+    <div class="aaa-filter-heading"><div><strong>Find the right part</strong><p>Choose one or more filters to narrow products.</p></div><button type="button" class="aaa-filter-clear" onclick="resetFilters()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Clear All</button></div>
+    <div class="aaa-filter-fields">
+      <label>Category<select id="finderCategory" onchange="applyFilters()"><option value="">All Categories</option></select></label>
+      <label>Brand<select id="finderBrand" onchange="applyFilters()"><option value="">All Brands</option></select></label>
+      <label>Voltage<select id="finderVoltage" onchange="applyFilters()"><option value="">All Voltages</option></select></label>
+      <label>Product Type<select id="finderType" onchange="applyFilters()"><option value="">All Types</option></select></label>
+      <label>Price Range<select id="finderPrice" onchange="applyFilters()"><option value="all">Any Price</option><option value="under200">Under ₹200</option><option value="200to500">₹200 – ₹499</option><option value="500to1000">₹500 – ₹999</option><option value="above1000">₹1,000 & above</option></select></label>
+    </div>
+  </div>
   <div id="productGrid" class="grid gap-5 lg:gap-6"></div>
   <div id="noProductsMsg" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300"><div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl"><i class="fa-solid fa-magnifying-glass"></i></div><h3 class="text-lg font-bold text-slate-800">No Products Found</h3><p class="text-slate-500 text-sm max-w-md mx-auto mt-1 mb-4">No catalogue item matches your selected filters.</p><button onclick="resetFilters()" class="bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-xl">Clear Filters</button></div>
 </main>
@@ -1093,6 +1116,7 @@ let filteredProducts=[...productsData];
 function populateDynamicProductFilters() {
     const configs = [
         { id: "finderBrand", key: "brand", placeholder: "All Brands" },
+        { id: "finderCategory", key: "category", placeholder: "All Categories" },
         { id: "finderType", key: "type", placeholder: "All Types" },
         { id: "finderVoltage", key: "voltage", placeholder: "All Voltages" }
     ];
@@ -1355,31 +1379,88 @@ function renderCategoryCards(){
 }
 
 function filterByCategory(category){
- filteredProducts=productsData.filter(function(product){
-   return String(product.category||'').trim()===String(category||'').trim();
- });
- renderProducts(filteredProducts);
+ const selection=document.getElementById('finderCategory');
+ if(selection)selection.value=String(category||'').trim();
+ aaaApplyCatalogueFilters();
+ aaaCloseSearchSuggestions();
  const section=document.getElementById('productsSection');
- if(section) section.scrollIntoView({behavior:'smooth',block:'start'});
+ if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
  showToast(`${category}: ${filteredProducts.length} product${filteredProducts.length===1?'':'s'} found.`);
 }
 
 function showAllCategoriesProducts(){
- filteredProducts=[...productsData];
- renderProducts(filteredProducts);
- const search=document.getElementById('searchInput');
- const mobileSearch=document.getElementById('mobileSearchInput');
- if(search) search.value='';
- if(mobileSearch) mobileSearch.value='';
- const clear=document.getElementById('clearSearchBtn');
- if(clear) clear.classList.add('hidden');
+ resetFilters(false);
  const section=document.getElementById('productsSection');
- if(section) section.scrollIntoView({behavior:'smooth',block:'start'});
+ if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
  showToast('Showing all categories.');
 }
 
-function applyFilters(){const brand=document.getElementById('finderBrand').value,type=document.getElementById('finderType').value,voltage=document.getElementById('finderVoltage').value,price=document.getElementById('finderPrice').value;filteredProducts=productsData.filter(p=>(!brand||p.brand===brand)&&(!type||p.type===type)&&(!voltage||p.voltage===voltage)&&(price==='all'||price==='under200'&&p.price<200||price==='200to300'&&p.price>=200&&p.price<=300||price==='above300'&&p.price>300));renderProducts(filteredProducts)}
-function resetFilters(){['finderBrand','finderType','finderVoltage'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const price=document.getElementById('finderPrice');if(price)price.value='all';const search=document.getElementById('searchInput');if(search)search.value='';const mobile=document.getElementById('mobileSearchInput');if(mobile)mobile.value='';const clear=document.getElementById('clearSearchBtn');if(clear)clear.classList.add('hidden');filteredProducts=[...productsData];renderProducts(filteredProducts);showToast('Catalogue reset.')}
+/* === Catalogue filters: shared with Smart Product Search === */
+function aaaToggleFilters(){
+ const panel=document.getElementById('aaaFilterControls');
+ const toggle=document.getElementById('aaaFilterToggle');
+ if(!panel||!toggle)return;
+ panel.hidden=!panel.hidden;
+ toggle.setAttribute('aria-expanded',String(!panel.hidden));
+ toggle.classList.toggle('aaa-filter-open',!panel.hidden);
+}
+function aaaCurrentSearchQuery(){
+ const desktop=document.getElementById('searchInput');
+ const mobile=document.getElementById('mobileSearchInput');
+ return (desktop&&desktop.value)||(mobile&&mobile.value)||'';
+}
+function aaaFilterSelection(id){
+ const element=document.getElementById(id);
+ return element?element.value:'';
+}
+function aaaUpdateFilterBadge(){
+ const selected=['finderCategory','finderBrand','finderVoltage','finderType'].filter(id=>aaaFilterSelection(id)).length;
+ const count=selected+(aaaFilterSelection('finderPrice')&&aaaFilterSelection('finderPrice')!=='all'?1:0);
+ const badge=document.getElementById('aaaActiveFilterCount');
+ const toggle=document.getElementById('aaaFilterToggle');
+ if(badge){badge.hidden=count===0;badge.textContent=String(count)}
+ if(toggle)toggle.setAttribute('aria-label',count?`Filter Products, ${count} active filters`:'Filter Products');
+}
+function aaaApplyCatalogueFilters(){
+ const brand=aaaFilterSelection('finderBrand');
+ const category=aaaFilterSelection('finderCategory');
+ const type=aaaFilterSelection('finderType');
+ const voltage=aaaFilterSelection('finderVoltage');
+ const price=aaaFilterSelection('finderPrice');
+ const matches=aaaSearchProducts(aaaCurrentSearchQuery());
+ filteredProducts=matches.filter(product=>{
+   const amount=Number(product.price)||0;
+   return (!brand||product.brand===brand)
+       && (!category||String(product.category||'').trim()===category)
+       && (!type||product.type===type)
+       && (!voltage||product.voltage===voltage)
+       && (price==='all'||!price
+           ||(price==='under200'&&amount<200)
+           ||(price==='200to500'&&amount>=200&&amount<500)
+           ||(price==='500to1000'&&amount>=500&&amount<1000)
+           ||(price==='above1000'&&amount>=1000));
+ });
+ renderProducts(filteredProducts);
+ aaaUpdateFilterBadge();
+ return filteredProducts;
+}
+function applyFilters(){
+ aaaApplyCatalogueFilters();
+ aaaCloseSearchSuggestions();
+}
+function resetFilters(notify=true){
+ ['finderCategory','finderBrand','finderType','finderVoltage'].forEach(id=>{
+   const field=document.getElementById(id);if(field)field.value='';
+ });
+ const price=document.getElementById('finderPrice');if(price)price.value='all';
+ const desktop=document.getElementById('searchInput');if(desktop)desktop.value='';
+ const mobile=document.getElementById('mobileSearchInput');if(mobile)mobile.value='';
+ const clear=document.getElementById('clearSearchBtn');if(clear)clear.classList.add('hidden');
+ aaaCloseSearchSuggestions();
+ aaaApplyCatalogueFilters();
+ if(notify)showToast('Filters cleared.');
+}
+/* === End catalogue filters === */
 /* === Smart Product Search: suggestions from the already-loaded Supabase catalogue === */
 const aaaSmartSearchState={desktop:{matches:[],active:-1},mobile:{matches:[],active:-1}};
 
@@ -1505,22 +1586,21 @@ function aaaHandleSmartSearch(mode){
   if(secondary)secondary.value=query;
   const clear=document.getElementById('clearSearchBtn');
   if(clear)clear.classList.toggle('hidden',!aaaSearchNormalise(query));
-  filteredProducts=aaaSearchProducts(query);
-  renderProducts(filteredProducts);
+  aaaApplyCatalogueFilters();
   aaaCloseSearchSuggestions();
   aaaRenderSmartSuggestions(mode,query,filteredProducts);
 }
 function aaaRefreshSmartSearchAfterProductsLoad(){
   const desktop=document.getElementById('searchInput');
   const mobile=document.getElementById('mobileSearchInput');
-  const query=(desktop&&desktop.value)||(mobile&&mobile.value)||'';
-  if(!aaaSearchNormalise(query))return;
-  filteredProducts=aaaSearchProducts(query);
-  renderProducts(filteredProducts);
+  const query=aaaCurrentSearchQuery();
+  aaaApplyCatalogueFilters();
   if(desktop)desktop.value=query;
   if(mobile)mobile.value=query;
+  if(!aaaSearchNormalise(query)){aaaCloseSearchSuggestions();return;}
   const mode=document.activeElement===mobile?'mobile':'desktop';
-  if(document.activeElement===mobile||document.activeElement===desktop)aaaRenderSmartSuggestions(mode,query,filteredProducts);
+  if(document.activeElement===mobile||document.activeElement===desktop)
+    aaaRenderSmartSuggestions(mode,query,filteredProducts);
 }
 function handleSearch(){aaaHandleSmartSearch('desktop')}
 function handleMobileSearch(){aaaHandleSmartSearch('mobile')}
@@ -1528,7 +1608,7 @@ function clearSearch(){
   const desktop=document.getElementById('searchInput'),mobile=document.getElementById('mobileSearchInput');
   if(desktop)desktop.value='';if(mobile)mobile.value='';
   const clear=document.getElementById('clearSearchBtn');if(clear)clear.classList.add('hidden');
-  aaaCloseSearchSuggestions();filteredProducts=[...productsData];renderProducts(filteredProducts);
+  aaaCloseSearchSuggestions();aaaApplyCatalogueFilters();
   if(desktop)desktop.focus();
 }
 function toggleMobileSearch(){
