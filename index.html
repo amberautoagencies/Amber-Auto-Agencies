@@ -235,6 +235,11 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
   #productGrid > article > div:last-child{padding:5px 7px 7px!important}
   #productGrid .aaa-product-actions button{min-height:30px!important}
 }
+/* Product Details image: two-finger zoom; normal vertical scrolling while not zoomed */
+#detailsImageSlider{touch-action:pan-y}
+#detailsImageSlider.aaa-zoom-active{touch-action:none;cursor:grab}
+#detailsImageSlider.aaa-zoom-active:active{cursor:grabbing}
+#detailsProductImage img{user-select:none;-webkit-user-select:none;-webkit-user-drag:none;transform-origin:center center;will-change:transform}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -621,8 +626,7 @@ Automotive electrical parts and accessories. Contact us for product availability
           <div class="min-w-0">
             <div id="detailsImageSlider"
                  class="h-[235px] sm:h-80 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-slate-200 flex items-center justify-center overflow-hidden relative touch-pan-y min-w-0"
-                 ontouchstart="handleDetailsTouchStart(event)"
-                 ontouchend="handleDetailsTouchEnd(event)">
+                 title="Pinch with two fingers to zoom the image">
 
               <div id="detailsProductImage" class="w-full h-full min-w-0"></div>
 
@@ -1264,7 +1268,9 @@ let detailsProductId=null;
 let detailsQuantity=1;
 let detailsImages=[];
 let detailsImageIndex=0;
-let detailsTouchStartX=0;
+// Zoom state belongs only to the Product Details picture (not the entire page).
+let detailsZoom={scale:1,x:0,y:0};
+let detailsTouchGesture=null;
 
 function openProductDetails(id){
 
@@ -1297,6 +1303,7 @@ function openProductDetails(id){
  }else{
    thumbnailBox.innerHTML='';
    mainImageBox.innerHTML=productVisual(p);
+   resetDetailsImageZoom();
    updateDetailsSliderControls();
  }
  document.getElementById('detailsBrand').innerText=p.brand || "—";
@@ -1354,7 +1361,8 @@ function showDetailsImageAtIndex(index){
  const alt=p ? `${p.name} image ${detailsImageIndex+1}` : 'Product image';
 
  const mainImageBox=document.getElementById('detailsProductImage');
- mainImageBox.innerHTML=`<img src="${src}" alt="${alt}" style="width:100%;height:100%;object-fit:contain;padding:0;display:block;">`;
+ mainImageBox.innerHTML=`<img src="${src}" alt="${alt}" draggable="false" style="width:100%;height:100%;object-fit:contain;padding:0;display:block;">`;
+ resetDetailsImageZoom();
 
  document.querySelectorAll('#detailsImageThumbnails button').forEach((btn,i)=>{
    const active=i===detailsImageIndex;
@@ -1393,24 +1401,131 @@ function changeDetailsImage(direction){
  showDetailsImageAtIndex(detailsImageIndex+direction);
 }
 
+// Pinch-to-zoom (1–4x) and pan, while keeping the existing one-finger image swipe.
+function applyDetailsImageZoom(){
+ const slider=document.getElementById('detailsImageSlider');
+ const img=document.querySelector('#detailsProductImage img');
+ if(!slider)return;
+ if(detailsZoom.scale<=1){
+   detailsZoom={scale:1,x:0,y:0};
+ }else{
+   const limitX=(detailsZoom.scale-1)*slider.clientWidth/2;
+   const limitY=(detailsZoom.scale-1)*slider.clientHeight/2;
+   detailsZoom.x=Math.max(-limitX,Math.min(limitX,detailsZoom.x));
+   detailsZoom.y=Math.max(-limitY,Math.min(limitY,detailsZoom.y));
+ }
+ slider.classList.toggle('aaa-zoom-active',detailsZoom.scale>1);
+ if(img){
+   img.style.transform=`translate3d(${detailsZoom.x}px, ${detailsZoom.y}px, 0) scale(${detailsZoom.scale})`;
+ }
+}
+
+function resetDetailsImageZoom(){
+ detailsZoom={scale:1,x:0,y:0};
+ detailsTouchGesture=null;
+ applyDetailsImageZoom();
+}
+
+function detailsFingerDistance(t1,t2){
+ return Math.hypot(t1.clientX-t2.clientX,t1.clientY-t2.clientY);
+}
+
 function handleDetailsTouchStart(event){
- if(!event.touches || !event.touches.length)return;
- detailsTouchStartX=event.touches[0].clientX;
+ if(!document.querySelector('#detailsProductImage img'))return;
+ if(event.touches.length>=2){
+   const a=event.touches[0],b=event.touches[1];
+   detailsTouchGesture={
+     type:'pinch',
+     distance:detailsFingerDistance(a,b),
+     centerX:(a.clientX+b.clientX)/2,
+     centerY:(a.clientY+b.clientY)/2
+   };
+ }else if(event.touches.length===1){
+   const t=event.touches[0];
+   detailsTouchGesture=detailsZoom.scale>1
+     ? {type:'pan',lastX:t.clientX,lastY:t.clientY}
+     : {type:'swipe',startX:t.clientX,startY:t.clientY};
+ }
+}
+
+function handleDetailsTouchMove(event){
+ const g=detailsTouchGesture;
+ if(!g)return;
+ if(event.touches.length>=2){
+   const a=event.touches[0],b=event.touches[1];
+   const distance=detailsFingerDistance(a,b);
+   const centerX=(a.clientX+b.clientX)/2;
+   const centerY=(a.clientY+b.clientY)/2;
+   if(g.type!=='pinch'){
+     detailsTouchGesture={type:'pinch',distance,centerX,centerY};
+     return;
+   }
+   if(g.distance<1)return;
+   event.preventDefault();
+   const slider=document.getElementById('detailsImageSlider');
+   const rect=slider.getBoundingClientRect();
+   const nextScale=Math.max(1,Math.min(4,detailsZoom.scale*distance/g.distance));
+   // Keep the exact point under the fingers in place as the pinch moves.
+   const anchorX=(g.centerX-rect.left-rect.width/2-detailsZoom.x)/detailsZoom.scale;
+   const anchorY=(g.centerY-rect.top-rect.height/2-detailsZoom.y)/detailsZoom.scale;
+   detailsZoom.x=centerX-rect.left-rect.width/2-anchorX*nextScale;
+   detailsZoom.y=centerY-rect.top-rect.height/2-anchorY*nextScale;
+   detailsZoom.scale=nextScale;
+   applyDetailsImageZoom();
+   g.distance=distance;
+   g.centerX=centerX;
+   g.centerY=centerY;
+ }else if(event.touches.length===1 && g.type==='pan' && detailsZoom.scale>1){
+   event.preventDefault();
+   const t=event.touches[0];
+   detailsZoom.x+=t.clientX-g.lastX;
+   detailsZoom.y+=t.clientY-g.lastY;
+   g.lastX=t.clientX;
+   g.lastY=t.clientY;
+   applyDetailsImageZoom();
+ }
 }
 
 function handleDetailsTouchEnd(event){
- if(detailsImages.length<2 || !event.changedTouches || !event.changedTouches.length)return;
-
- const endX=event.changedTouches[0].clientX;
- const distance=endX-detailsTouchStartX;
-
- if(Math.abs(distance)<40)return;
-
- if(distance<0){
-   changeDetailsImage(1);
- }else{
-   changeDetailsImage(-1);
+ const g=detailsTouchGesture;
+ if(!g)return;
+ if(event.touches.length===1){
+   // After lifting one finger from a pinch, the other can still drag.
+   const t=event.touches[0];
+   detailsTouchGesture=detailsZoom.scale>1
+     ? {type:'pan',lastX:t.clientX,lastY:t.clientY}
+     : null;
+   return;
  }
+ if(event.touches.length===0){
+   // Only genuine single-finger horizontal swipes switch pictures.
+   if(g.type==='swipe' && detailsZoom.scale===1 && detailsImages.length>1 && event.changedTouches.length===1){
+     const t=event.changedTouches[0];
+     const dx=t.clientX-g.startX,dy=t.clientY-g.startY;
+     if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)*1.2){
+       changeDetailsImage(dx<0?1:-1);
+     }
+   }
+   detailsTouchGesture=null;
+ }
+}
+
+const detailsZoomSlider=document.getElementById('detailsImageSlider');
+if(detailsZoomSlider){
+ detailsZoomSlider.addEventListener('touchstart',handleDetailsTouchStart,{passive:true});
+ detailsZoomSlider.addEventListener('touchmove',handleDetailsTouchMove,{passive:false});
+ detailsZoomSlider.addEventListener('touchend',handleDetailsTouchEnd,{passive:true});
+ detailsZoomSlider.addEventListener('touchcancel',()=>{detailsTouchGesture=null;},{passive:true});
+ // Desktop: double-click to zoom / reset. No change to mobile purchase actions.
+ detailsZoomSlider.addEventListener('dblclick',event=>{
+   if(!event.target.closest('#detailsProductImage'))return;
+   if(detailsZoom.scale>1){resetDetailsImageZoom();return;}
+   const rect=detailsZoomSlider.getBoundingClientRect();
+   const x=event.clientX-rect.left-rect.width/2;
+   const y=event.clientY-rect.top-rect.height/2;
+   detailsZoom={scale:2.5,x:-x*1.5,y:-y*1.5};
+   applyDetailsImageZoom();
+ });
 }
 
 function closeProductDetails(){
@@ -1421,6 +1536,7 @@ function closeProductDetails(){
  detailsProductId=null;
  detailsImages=[];
  detailsImageIndex=0;
+ resetDetailsImageZoom();
 }
 
 function changeDetailsQty(change){
