@@ -364,6 +364,22 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
 @media(max-width:380px){.aaa-smart-item{gap:7px;padding:9px}.aaa-smart-thumb{width:42px;height:42px;flex-basis:42px}}
 @media(prefers-reduced-motion:reduce){.aaa-smart-item,.aaa-smart-all{transition:none}}
 /* === End Smart Product Search === */
+
+/* === Recently Viewed Products: a compact, optional customer convenience === */
+#aaaRecentlyViewed[hidden]{display:none!important}
+.aaa-recent-list{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 1px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.aaa-recent-tile{scroll-snap-align:start;flex:0 0 156px;min-width:0;background:white;text-align:left;border:1px solid #e2e8f0;border-radius:13px;overflow:hidden;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.aaa-recent-tile:focus-visible{outline:2px solid #f59e0b;outline-offset:3px}
+.aaa-recent-img{display:flex;align-items:center;justify-content:center;height:105px;background:#f8fafc;border-bottom:1px solid #f1f5f9}
+.aaa-recent-img img{width:100%;height:100%;object-fit:contain;padding:8px}
+.aaa-recent-body{padding:9px 10px}
+.aaa-recent-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.35;font-weight:700;color:#0f172a;min-height:32px}
+.aaa-recent-clear{font-size:11px;font-weight:700;color:#92400e;padding:8px 10px;border-radius:8px}
+.aaa-recent-clear:hover{background:#fffbeb}
+@media(min-width:640px){.aaa-recent-tile{flex-basis:177px}.aaa-recent-img{height:118px}}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.aaa-recent-tile:hover{border-color:#fbbf24;box-shadow:0 6px 16px rgba(15,23,42,.10);transform:translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){.aaa-recent-tile{transition:none}}
+/* === End Recently Viewed === */
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -541,6 +557,19 @@ body{font-family:'Inter',sans-serif;background:#f8fafc}
   <div id="noProductsMsg" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300"><div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl"><i class="fa-solid fa-magnifying-glass"></i></div><h3 class="text-lg font-bold text-slate-800">No Products Found</h3><p class="text-slate-500 text-sm max-w-md mx-auto mt-1 mb-4">No catalogue item matches your selected filters.</p><button onclick="resetFilters()" class="bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-xl">Clear Filters</button></div>
 </main>
 
+
+
+<!-- RECENTLY VIEWED PRODUCTS: hidden until the visitor opens a product -->
+<section id="aaaRecentlyViewed" hidden aria-label="Recently viewed products" class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-9">
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <div>
+      <h2 class="text-base sm:text-lg font-extrabold text-slate-900"><i class="fa-regular fa-clock text-amber-600 mr-2" aria-hidden="true"></i>Recently Viewed</h2>
+      <p class="text-[11px] text-slate-500">Products you looked at on this device</p>
+    </div>
+    <button type="button" class="aaa-recent-clear" onclick="aaaClearRecentlyViewed()" aria-label="Clear recently viewed products">Clear history</button>
+  </div>
+  <div id="aaaRecentlyViewedList" class="aaa-recent-list" aria-label="Recently viewed product list"></div>
+</section>
 
 <!-- TRACK ORDER MODAL -->
 <div id="trackOrderModal" class="hidden fixed inset-0 z-[70] bg-slate-950/70 backdrop-blur-sm p-4 overflow-y-auto" aria-hidden="true">
@@ -1173,6 +1202,7 @@ async function loadProductsFromSupabase() {
         renderCategoryCards();
         renderProducts(filteredProducts);
         aaaRefreshSmartSearchAfterProductsLoad();
+        aaaRenderRecentlyViewed();
         return;
     }
 
@@ -1185,6 +1215,7 @@ async function loadProductsFromSupabase() {
         renderCategoryCards();
         renderProducts(filteredProducts);
         aaaRefreshSmartSearchAfterProductsLoad();
+        aaaRenderRecentlyViewed();
         return;
     }
 
@@ -1221,6 +1252,7 @@ async function loadProductsFromSupabase() {
 
     renderProducts(filteredProducts);
         aaaRefreshSmartSearchAfterProductsLoad();
+        aaaRenderRecentlyViewed();
 
     console.log(
         "Products loaded from Supabase:",
@@ -1665,6 +1697,55 @@ let detailsImageIndex=0;
 let detailsZoom={scale:1,x:0,y:0};
 let detailsTouchGesture=null;
 
+/* === Recently Viewed Products ===
+   Store only product IDs in this browser. Product names, images and prices always
+   come from the current catalogue, so removed or inactive products do not appear. */
+const AAA_RECENT_STORAGE_KEY='aaa-recent-products-v1';
+let aaaRecentFallbackIds=[];
+function aaaReadRecentIds(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(AAA_RECENT_STORAGE_KEY)||'[]');
+    return Array.isArray(saved)?saved.filter(v=>['string','number'].includes(typeof v)).map(String).slice(0,6):[];
+  }catch(_error){return aaaRecentFallbackIds.slice();}
+}
+function aaaStoreRecentIds(ids){
+  aaaRecentFallbackIds=ids.slice(0,6);
+  try{localStorage.setItem(AAA_RECENT_STORAGE_KEY,JSON.stringify(aaaRecentFallbackIds));}catch(_error){}
+}
+function aaaRememberViewedProduct(product){
+  if(!product)return;
+  const id=String(product.id);
+  aaaStoreRecentIds([id,...aaaReadRecentIds().filter(savedId=>savedId!==id)].slice(0,6));
+  aaaRenderRecentlyViewed();
+}
+function aaaClearRecentlyViewed(){
+  aaaRecentFallbackIds=[];
+  try{localStorage.removeItem(AAA_RECENT_STORAGE_KEY);}catch(_error){}
+  aaaRenderRecentlyViewed();
+}
+function aaaRenderRecentlyViewed(){
+  const section=document.getElementById('aaaRecentlyViewed');
+  const list=document.getElementById('aaaRecentlyViewedList');
+  if(!section||!list)return;
+  const items=aaaReadRecentIds().map(id=>productsData.find(p=>String(p.id)===id)).filter(Boolean);
+  section.hidden=items.length===0;
+  if(!items.length){list.replaceChildren();return;}
+  list.innerHTML=items.map(p=>{
+    const image=p.image?`<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy">`:
+      '<i class="fa-solid fa-box-open text-3xl text-slate-300" aria-hidden="true"></i>';
+    return `<button type="button" class="aaa-recent-tile" data-aaa-recent-id="${escapeHtml(p.id)}" aria-label="View ${escapeHtml(p.name)}">`+
+      `<span class="aaa-recent-img">${image}</span>`+
+      `<span class="aaa-recent-body block"><span class="aaa-recent-name">${escapeHtml(p.name)}</span>`+
+      `<span class="block text-[10px] text-slate-500 mt-1">${escapeHtml(p.brand||'')}</span>`+
+      `<span class="block text-sm font-extrabold text-slate-900 mt-1">${formatProductCurrency(p.price)}</span></span></button>`;
+  }).join('');
+}
+document.getElementById('aaaRecentlyViewedList')?.addEventListener('click',event=>{
+  const tile=event.target.closest('button[data-aaa-recent-id]');
+  if(tile)openProductDetails(tile.dataset.aaaRecentId);
+});
+/* === End Recently Viewed Products === */
+
 function openProductDetails(id){
 
  const p=productsData.find(x=>String(x.id)===String(id));
@@ -1675,6 +1756,7 @@ function openProductDetails(id){
  }
 
  detailsProductId=p.id;
+ aaaRememberViewedProduct(p);
  detailsQuantity=1;
 
  detailsImages=[p.image,p.image2,p.image3,p.image4,p.image5].filter(Boolean);
