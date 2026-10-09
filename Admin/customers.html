@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amber Auto Agencies - Customers</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; color: #101828; background: #f4f6f8; }
+.header { background: #101828; color: #fff; padding: 18px 25px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.header h1 { margin: 0; font-size: 22px; }
+.back { background: #f59e0b; color: white; border: 0; padding: 10px 16px; border-radius: 6px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.back:hover { background: #d97706; }
+.container { max-width: 1200px; padding: 30px; margin: auto; }
+h2 { margin: 0 0 7px; }
+.subtitle { color: #667085; margin: 0 0 24px; font-size: 14px; line-height: 1.5; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+.stat { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 12px rgba(0,0,0,.06); }
+.stat .label { font-size: 13px; font-weight: 700; color: #667085; margin-bottom: 12px; }
+.stat .value { font-size: 26px; font-weight: 800; color: #e89b09; overflow-wrap: anywhere; }
+.panel { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 12px rgba(0,0,0,.06); }
+.panel-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.panel-top h3 { margin: 0; font-size: 19px; }
+#resultCount { font-size: 13px; color: #667085; }
+.filters { display: grid; grid-template-columns: minmax(0,1fr) 215px; gap: 12px; margin-bottom: 14px; }
+.filters input, .filters select { width: 100%; padding: 11px 12px; border: 1px solid #d0d5dd; border-radius: 8px; background: #fff; color: #101828; font-size: 14px; }
+.filters input:focus, .filters select:focus { outline: 2px solid #fbbf24; outline-offset: 1px; }
+.customer-head, .customer-row { display: grid; grid-template-columns: minmax(170px,1.35fr) minmax(165px,1.15fr) 70px minmax(100px,.8fr) minmax(105px,.83fr) 110px; align-items: center; gap: 10px; }
+.customer-head { background: #f9fafb; color: #475467; font-size: 12px; font-weight: 700; padding: 13px 14px; border-bottom: 1px solid #e4e7ec; }
+.customer-entry { border-bottom: 1px solid #e4e7ec; }
+.customer-entry:last-child { border-bottom: 0; }
+.customer-row { min-height: 76px; padding: 13px 14px; font-size: 14px; }
+.customer-row strong { font-size: 14px; }
+.muted { color: #667085; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.customer-row .amount { font-weight: 700; }
+.mobile-label { display: none; }
+.history-btn { background: #fff7e6; color: #975d00; border: 1px solid #f3d38c; border-radius: 7px; font-weight: 700; padding: 8px 10px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+.history-btn:hover { background: #ffecc2; }
+.history-btn:focus-visible { outline: 2px solid #e89b09; outline-offset: 2px; }
+.history { background: #fcfcfd; padding: 16px; border-top: 1px solid #e4e7ec; }
+.profile-details { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
+.profile-details div { font-size: 13px; color: #475467; line-height: 1.5; overflow-wrap: anywhere; }
+.profile-details b { display: block; color: #101828; margin-bottom: 3px; }
+.history h4 { margin: 0 0 12px; font-size: 15px; }
+.history-table-wrap { overflow-x: auto; }
+.history-table { width: 100%; border-collapse: collapse; min-width: 570px; }
+.history-table th, .history-table td { font-size: 12px; padding: 10px; border-bottom: 1px solid #e4e7ec; text-align: left; vertical-align: top; }
+.history-table th { color: #475467; background: #f2f4f7; }
+.history-table th:last-child, .history-table td:last-child { text-align: right; }
+.order-items { margin-top: 4px; color: #667085; font-size: 11px; max-width: 300px; line-height: 1.5; }
+.pill { display: inline-block; border-radius: 50px; padding: 4px 8px; font-weight: 700; background: #f2f4f7; color: #475467; font-size: 11px; white-space: nowrap; }
+.pill.paid, .pill.delivered { background: #ecfdf3; color: #027a48; }
+.pill.failed, .pill.cancelled, .pill.refunded { background: #fef3f2; color: #b42318; }
+.pill.pending, .pill.pending-verification { background: #fffaeb; color: #b54708; }
+.empty { text-align: center; padding: 35px 12px; font-size: 14px; color: #667085; line-height: 1.5; }
+.error { color: #b42318; }
+@media(max-width:1050px) {
+  .customer-head { display: none; }
+  .customer-row { grid-template-columns: minmax(0,1.2fr) minmax(0,1fr) 80px; gap: 12px; align-items: start; }
+  .mobile-label { display: block; font-size: 11px; font-weight: 700; color: #667085; margin-bottom: 4px; }
+  .customer-row > div { min-width: 0; }
+  .customer-row > div:nth-child(6) { align-self: center; }
+}
+@media(max-width:720px) {
+  .header { padding: 15px; }
+  .header h1 { font-size: 17px; }
+  .container { padding: 20px 15px; }
+  .stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .stat { padding: 15px; }
+  .stat .value { font-size: 22px; }
+  .panel { padding: 14px; }
+  .filters { grid-template-columns: 1fr; }
+  .customer-row { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 14px 5px; gap: 14px; }
+  .customer-row > div:first-child { grid-column: 1/-1; }
+  .customer-row > div:nth-child(6) { text-align: right; }
+  .profile-details { grid-template-columns: 1fr; }
+  .history { padding: 14px 8px; }
+}
+</style>
+</head>
+<body>
+<header class="header">
+  <h1>Amber Auto Agencies — Customers</h1>
+  <a class="back" href="dashboard.html">← Dashboard</a>
+</header>
+<main class="container">
+  <h2>Customer Management</h2>
+  <p class="subtitle">Customers are automatically collected from orders. Paid purchase amounts include only orders with a Paid or Paid / Verified payment status.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="label">Total Customers</div><div class="value" id="totalCustomers">—</div></div>
+    <div class="stat"><div class="label">Total Orders</div><div class="value" id="customerTotalOrders">—</div></div>
+    <div class="stat"><div class="label">Paid Orders</div><div class="value" id="customerPaidOrders">—</div></div>
+    <div class="stat"><div class="label">Paid Purchase Value</div><div class="value" id="customerPaidValue">—</div></div>
+  </div>
+
+  <section class="panel" aria-label="Customer list">
+    <div class="panel-top"><h3>All Customers</h3><span id="resultCount" aria-live="polite">Loading...</span></div>
+    <div class="filters">
+      <input type="search" id="customerSearch" placeholder="Search by name, phone or email..." aria-label="Search customers" autocomplete="off">
+      <select id="customerSort" aria-label="Sort customers">
+        <option value="recent">Most Recent Order</option>
+        <option value="spent">Highest Paid Purchase</option>
+        <option value="orders">Most Orders</option>
+        <option value="name">Customer Name (A–Z)</option>
+      </select>
+    </div>
+    <div class="customer-head" aria-hidden="true">
+      <span>Customer</span><span>Contact</span><span>Orders</span><span>Paid Purchases</span><span>Last Order</span><span>History</span>
+    </div>
+    <div id="customersList" aria-live="polite"><div class="empty">Loading customer records...</div></div>
+  </section>
+</main>
+<script>
+/* Uses the same public Supabase project and browser-session login as the existing Admin pages. */
+const SUPABASE_URL = "https://vkgvexnaoqgonnmtdlkl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uAdyfJX0gFlQtpbPutxjHw_acg8RzOF";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { storage: sessionStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+const PAGE_SIZE = 500;
+const INR = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 });
+let customers = [];
+let expandedKey = null;
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;").replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+function textOrDash(value) { return value == null || String(value).trim() === "" ? "—" : escapeHtml(value); }
+function getPhone(value) {
+  let digits = String(value ?? "").replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
+  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
+  return digits;
+}
+function getKey(order, index) {
+  const phone = getPhone(order.customer_phone);
+  if (phone.length >= 10) return "phone:" + phone;
+  const email = String(order.customer_email || "").trim().toLowerCase();
+  if (email.includes("@")) return "email:" + email;
+  return "order:" + String(order.id ?? order.order_number ?? index);
+}
+function isPaid(order) { return ["Paid", "Paid / Verified"].includes(String(order.payment_status || "").trim()); }
+function getTimestamp(order) {
+  const time = Date.parse(order.created_at || "");
+  return Number.isFinite(time) ? time : 0;
+}
+function getDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+function bestValue(orders, field) {
+  const order = orders.find(item => item[field] != null && String(item[field]).trim() !== "");
+  return order ? String(order[field]).trim() : "";
+}
+function normaliseItems(items) {
+  if (Array.isArray(items)) return items;
+  if (typeof items === "string") {
+    try { const parsed = JSON.parse(items); return Array.isArray(parsed) ? parsed : []; }
+    catch (_) { return []; }
+  }
+  return [];
+}
+function groupCustomers(orders) {
+  const groups = new Map();
+  orders.forEach((order, index) => {
+    const key = getKey(order, index);
+    if (!groups.has(key)) groups.set(key, { key, orders: [] });
+    groups.get(key).orders.push(order);
+  });
+  return Array.from(groups.values()).map(group => {
+    group.orders.sort((a,b) => getTimestamp(b) - getTimestamp(a));
+    group.name = bestValue(group.orders, "customer_name") || "Customer";
+    group.phone = bestValue(group.orders, "customer_phone");
+    group.email = bestValue(group.orders, "customer_email");
+    group.address = bestValue(group.orders, "customer_address");
+    group.city = bestValue(group.orders, "customer_city");
+    group.state = bestValue(group.orders, "customer_state");
+    group.pincode = bestValue(group.orders, "customer_pincode");
+    group.lastDate = group.orders[0]?.created_at || "";
+    group.lastTimestamp = getTimestamp(group.orders[0] || {});
+    group.paidOrders = group.orders.filter(isPaid);
+    group.paidTotal = group.paidOrders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+    return group;
+  });
+}
+function statusPill(value, type) {
+  const label = String(value || (type === "payment" ? "Pending Verification" : "Pending"));
+  const kind = label === "Paid / Verified" || label === "Paid" ? "paid" : label.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "");
+  const cls = ["paid", "delivered", "failed", "cancelled", "refunded", "pending", "pending-verification"].includes(kind) ? kind : "";
+  return `<span class="pill ${cls}">${escapeHtml(label)}</span>`;
+}
+function orderItemsSummary(order) {
+  const items = normaliseItems(order.items);
+  if (!items.length) return "";
+  return `<div class="order-items">${escapeHtml(items.map(item => `${item.name || "Product"} × ${item.qty ?? item.quantity ?? 1}`).join(", "))}</div>`;
+}
+function historyHtml(customer) {
+  const address = [customer.address, customer.city, customer.state, customer.pincode].filter(Boolean).join(", ");
+  const rows = customer.orders.map(order => `
+    <tr>
+      <td><strong>${textOrDash(order.order_number || order.id)}</strong>${orderItemsSummary(order)}</td>
+      <td>${getDate(order.created_at)}</td>
+      <td>${statusPill(order.payment_status, "payment")}</td>
+      <td>${statusPill(order.order_status, "order")}</td>
+      <td>${INR.format(Number(order.total_amount) || 0)}</td>
+    </tr>`).join("");
+  return `<div class="history">
+    <div class="profile-details">
+      <div><b>Customer Name</b>${textOrDash(customer.name)}</div>
+      <div><b>Phone / Email</b>${textOrDash(customer.phone)}${customer.email ? `<div>${escapeHtml(customer.email)}</div>` : ""}</div>
+      <div><b>Delivery Address</b>${textOrDash(address)}</div>
+    </div>
+    <h4>Order History (${customer.orders.length})</h4>
+    <div class="history-table-wrap"><table class="history-table">
+      <thead><tr><th>Order / Products</th><th>Date</th><th>Payment</th><th>Order Status</th><th>Amount</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  </div>`;
+}
+function renderCustomers() {
+  const list = document.getElementById("customersList");
+  const query = document.getElementById("customerSearch").value.trim().toLowerCase();
+  const sort = document.getElementById("customerSort").value;
+  let shown = customers.filter(customer => [customer.name, customer.phone, getPhone(customer.phone), customer.email]
+    .some(value => String(value || "").toLowerCase().includes(query)));
+  shown.sort((a,b) => {
+    if (sort === "spent") return b.paidTotal - a.paidTotal || b.lastTimestamp - a.lastTimestamp;
+    if (sort === "orders") return b.orders.length - a.orders.length || b.lastTimestamp - a.lastTimestamp;
+    if (sort === "name") return a.name.localeCompare(b.name) || b.lastTimestamp - a.lastTimestamp;
+    return b.lastTimestamp - a.lastTimestamp;
+  });
+  document.getElementById("resultCount").textContent = `${shown.length} of ${customers.length} customers`;
+  if (!shown.length) {
+    list.innerHTML = `<div class="empty">${customers.length ? "No customers match your search." : "No customer orders found yet."}</div>`;
+    return;
+  }
+  list.innerHTML = shown.map(customer => {
+    const opened = expandedKey === customer.key;
+    return `<div class="customer-entry">
+      <div class="customer-row">
+        <div><strong>${escapeHtml(customer.name)}</strong><div class="muted">${customer.city ? escapeHtml(customer.city) : "Customer"}</div></div>
+        <div><span class="mobile-label">Contact</span>${textOrDash(customer.phone)}${customer.email ? `<div class="muted">${escapeHtml(customer.email)}</div>` : ""}</div>
+        <div><span class="mobile-label">Orders</span><strong>${customer.orders.length}</strong></div>
+        <div><span class="mobile-label">Paid Purchases</span><span class="amount">${INR.format(customer.paidTotal)}</span></div>
+        <div><span class="mobile-label">Last Order</span>${getDate(customer.lastDate)}</div>
+        <div><button type="button" class="history-btn" data-key="${escapeHtml(customer.key)}" aria-expanded="${opened}">${opened ? "Hide History" : "View History"}</button></div>
+      </div>
+      ${opened ? historyHtml(customer) : ""}
+    </div>`;
+  }).join("");
+}
+async function loadCustomers() {
+  try {
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError || !session) { window.location.replace("index.html"); return; }
+    const orders = [];
+    for (let offset = 0; ; offset += PAGE_SIZE) {
+      const { data, error } = await supabaseClient.from("Orders")
+        .select("id,order_number,created_at,customer_name,customer_phone,customer_email,customer_address,customer_city,customer_state,customer_pincode,items,total_amount,payment_status,order_status")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+      if (error) throw error;
+      orders.push(...(data || []));
+      if (!data || data.length < PAGE_SIZE) break;
+      document.getElementById("resultCount").textContent = `Loading ${orders.length} orders...`;
+    }
+    customers = groupCustomers(orders);
+    document.getElementById("totalCustomers").textContent = customers.length.toLocaleString("en-IN");
+    document.getElementById("customerTotalOrders").textContent = orders.length.toLocaleString("en-IN");
+    const paidOrders = orders.filter(isPaid);
+    document.getElementById("customerPaidOrders").textContent = paidOrders.length.toLocaleString("en-IN");
+    document.getElementById("customerPaidValue").textContent = INR.format(paidOrders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0));
+    renderCustomers();
+  } catch (error) {
+    console.error("Customer loading error:", error);
+    document.getElementById("resultCount").textContent = "Unable to load";
+    const message = error && error.message ? error.message : "Please refresh and try again.";
+    document.getElementById("customersList").innerHTML = `<div class="empty error">Could not load customers. ${escapeHtml(message)}</div>`;
+  }
+}
+document.getElementById("customerSearch").addEventListener("input", renderCustomers);
+document.getElementById("customerSort").addEventListener("change", renderCustomers);
+document.getElementById("customersList").addEventListener("click", event => {
+  const btn = event.target.closest(".history-btn");
+  if (!btn) return;
+  expandedKey = expandedKey === btn.dataset.key ? null : btn.dataset.key;
+  renderCustomers();
+});
+loadCustomers();
+</script>
+</body>
+</html>
