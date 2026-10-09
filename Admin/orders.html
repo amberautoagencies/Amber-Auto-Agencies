@@ -9,6 +9,7 @@
 <title>Amber Auto Agencies - Orders</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 
@@ -381,6 +382,39 @@ body {
     .order-tools { grid-template-columns:1fr; }
 }
 
+
+/* Compact order overview / responsive order tools */
+.order-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin-bottom:20px;}
+.order-summary-card{border-radius:10px;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.06);padding:16px 14px;min-width:0;}
+.order-summary-card .summary-label{font-size:12px;color:#667085;font-weight:700;}
+.order-summary-card .summary-value{font-size:25px;color:#101828;font-weight:800;margin-top:8px;overflow-wrap:anywhere;}
+.order-summary-card.accent .summary-value{color:#c97c00;}
+.order-toolbar{display:grid;grid-template-columns:minmax(160px,2fr) repeat(3,minmax(120px,1fr));gap:10px;margin-bottom:10px;}
+.order-date-filters{display:flex;gap:10px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px;}
+.order-date-inputs{display:flex;gap:10px;align-items:end;flex-wrap:wrap;}
+.order-date-filters label{font-size:12px;font-weight:700;color:#667085;display:flex;flex-direction:column;gap:5px;}
+.order-tools input,.order-tools select,.order-date-filters input{font-family:inherit;font-size:13px;min-width:0;padding:10px;border:1px solid #d0d5dd;border-radius:8px;background:white;}
+.order-date-filters input{width:160px;max-width:100%;}
+.order-date-filters button{border:0;border-radius:7px;padding:10px 13px;cursor:pointer;font-weight:bold;}
+.order-export-btn{background:#15803d;color:#fff;}
+.order-clear-btn{background:#e4e7ec;color:#344054;}
+.order-result-count{font-size:13px;color:#667085;margin-bottom:12px;}
+.orders-box{padding:16px;}
+.order-card{padding:16px;margin-bottom:12px;}
+.order-header{gap:14px;flex-wrap:wrap;margin-bottom:7px;}
+.order-id{overflow-wrap:anywhere;}
+.order-meta-badges{margin:8px 0;}
+.order-quickline{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:14px;padding:2px 0 10px;color:#475467;}
+.order-quickline strong{font-size:18px;color:#101828;}
+.order-detail-panel{border-top:1px solid #e4e7ec;margin-top:3px;padding-top:10px;}
+.order-detail-panel>summary{cursor:pointer;font-size:13px;font-weight:700;color:#a65d00;list-style:none;}
+.order-detail-panel>summary::-webkit-details-marker{display:none;}
+.order-detail-panel>summary:after{content:' +';}
+.order-detail-panel[open]>summary:after{content:' −';}
+.order-detail-body{padding-top:15px;}
+@media(max-width:950px){.order-summary{grid-template-columns:repeat(3,minmax(0,1fr));}.order-toolbar{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:700px){.order-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}.order-summary-card{padding:12px;}.order-summary-card .summary-value{font-size:21px;}.order-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.order-toolbar #orderSearch{grid-column:1/-1;}.order-date-filters input{width:132px;}.orders-box{padding:12px;}.order-card{padding:14px;}}
+
 </style>
 
 </head>
@@ -420,20 +454,41 @@ body {
 
 
 
-    <div class="order-tools">
-        <input id="orderSearch" type="search"
-            placeholder="Search order no., customer or mobile..."
-            oninput="applyOrderFilters()">
-        <select id="orderStatusFilter" onchange="applyOrderFilters()">
+    <div class="order-summary">
+        <div class="order-summary-card"><div class="summary-label">Total Orders</div><div class="summary-value" id="orderTotalCount">0</div></div>
+        <div class="order-summary-card"><div class="summary-label">Paid Orders</div><div class="summary-value" id="orderPaidCount">0</div></div>
+        <div class="order-summary-card"><div class="summary-label">Pending Orders</div><div class="summary-value" id="orderPendingCount">0</div></div>
+        <div class="order-summary-card"><div class="summary-label">Delivered</div><div class="summary-value" id="orderDeliveredCount">0</div></div>
+        <div class="order-summary-card accent"><div class="summary-label">Paid Sales</div><div class="summary-value" id="orderPaidSales">₹0</div></div>
+    </div>
+    <div class="order-tools order-toolbar">
+        <input id="orderSearch" type="search" placeholder="Search order, customer or mobile..." aria-label="Search orders" oninput="applyOrderFilters()">
+        <select id="orderStatusFilter" aria-label="Filter order status" onchange="applyOrderFilters()">
             <option value="">All Order Statuses</option>
-            <option value="Pending">Pending</option>
-            <option value="Confirmed">Confirmed</option>
-            <option value="Processing">Processing</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Cancelled">Cancelled</option>
+            <option value="Pending">Pending</option><option value="Confirmed">Confirmed</option>
+            <option value="Processing">Processing</option><option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option><option value="Cancelled">Cancelled</option>
+        </select>
+        <select id="orderPaymentFilter" aria-label="Filter payment status" onchange="applyOrderFilters()">
+            <option value="">All Payment Statuses</option><option value="paid">Paid / Verified</option>
+            <option value="pending">Pending Verification</option><option value="failed">Failed</option><option value="refunded">Refunded</option>
+        </select>
+        <select id="orderSortFilter" aria-label="Sort orders" onchange="applyOrderFilters()">
+            <option value="newest">Newest First</option><option value="oldest">Oldest First</option>
+            <option value="high">Highest Amount</option><option value="low">Lowest Amount</option>
         </select>
     </div>
+    <div class="order-date-filters">
+        <div class="order-date-inputs">
+            <label>From Date<input type="date" id="orderFromDate" onchange="applyOrderFilters()"></label>
+            <label>To Date<input type="date" id="orderToDate" onchange="applyOrderFilters()"></label>
+        </div>
+        <div class="order-date-inputs">
+            <button type="button" class="order-clear-btn" onclick="resetOrderFilters()">Clear Filters</button>
+            <button type="button" class="order-export-btn" onclick="exportOrdersExcel()">Export Excel</button>
+        </div>
+    </div>
+    <div class="order-result-count" id="orderResultCount">Loading orders...</div>
 
     <div class="orders-box">
 
@@ -528,6 +583,7 @@ async function loadOrders() {
 
     if (error) {
         console.error("Orders load error:", error);
+        document.getElementById("orderResultCount").textContent = "Could not load orders";
         ordersList.innerHTML = `
             <div class="empty">
                 Could not load orders.<br><br>
@@ -536,17 +592,9 @@ async function loadOrders() {
         return;
     }
 
-    if (!orders || orders.length === 0) {
-        ordersList.innerHTML = `
-            <div class="empty">
-                No orders received yet.<br><br>
-                Customer orders will appear here.
-            </div>`;
-        return;
-    }
-
-    allOrders = orders;
-    renderOrders(orders);
+    allOrders = orders || [];
+    updateOrderSummary();
+    applyOrderFilters();
 }
 
 function renderOrders(orders) {
@@ -554,7 +602,7 @@ function renderOrders(orders) {
     ordersList.innerHTML = "";
 
     if (!orders || orders.length === 0) {
-        ordersList.innerHTML = '<div class="empty">No matching orders found.</div>';
+        ordersList.innerHTML = '<div class="empty">' + (allOrders.length ? 'No matching orders found.' : 'No orders received yet. Customer orders will appear here.') + '</div>';
         return;
     }
 
@@ -597,6 +645,13 @@ function renderOrders(orders) {
                 </span>
             </div>
 
+            <div class="order-quickline">
+                <span><b>Customer:</b> ${escapeHtml(order.customer_name || "Not provided")} · ${escapeHtml(order.customer_phone || "")}</span>
+                <strong>₹${Number(order.total_amount || 0).toLocaleString("en-IN")}</strong>
+            </div>
+            <details class="order-detail-panel">
+              <summary>View / Edit Order Details</summary>
+              <div class="order-detail-body">
             <div class="customer-box">
                 <h4>Customer Details</h4>
                 <p><b>Name:</b> ${escapeHtml(order.customer_name || "")}</p>
@@ -677,6 +732,8 @@ function renderOrders(orders) {
                     Delete Order
                 </button>
             </div>
+              </div>
+            </details>
         `;
 
         ordersList.appendChild(card);
@@ -684,26 +741,94 @@ function renderOrders(orders) {
 }
 
 
-function applyOrderFilters() {
-    const query = (document.getElementById("orderSearch")?.value || "").trim().toLowerCase();
-    const status = document.getElementById("orderStatusFilter")?.value || "";
-
-    const filtered = allOrders.filter(order => {
-        const haystack = [
-            order.order_number,
-            order.id,
-            order.customer_name,
-            order.customer_phone
-        ].map(v => String(v || "").toLowerCase()).join(" ");
-
-        const matchesSearch = !query || haystack.includes(query);
-        const matchesStatus = !status || (order.order_status || "Pending") === status;
-        return matchesSearch && matchesStatus;
-    });
-
-    renderOrders(filtered);
+function updateOrderSummary() {
+    const paid = allOrders.filter(order => ["Paid", "Paid / Verified"].includes(order.payment_status));
+    const counts = {
+        orderTotalCount: allOrders.length,
+        orderPaidCount: paid.length,
+        orderPendingCount: allOrders.filter(order => (order.order_status || "Pending") === "Pending").length,
+        orderDeliveredCount: allOrders.filter(order => order.order_status === "Delivered").length,
+        orderPaidSales: "₹" + paid.reduce((sum, order) => sum + Number(order.total_amount || 0), 0).toLocaleString("en-IN")
+    };
+    Object.entries(counts).forEach(([id, value]) => { const element = document.getElementById(id); if (element) element.textContent = value; });
 }
 
+function orderDateLocal(value) {
+    const date = new Date(value);
+    if (!value || Number.isNaN(date.getTime())) return "";
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
+
+function getFilteredOrders() {
+    const query = (document.getElementById("orderSearch")?.value || "").trim().toLowerCase();
+    const status = document.getElementById("orderStatusFilter")?.value || "";
+    const payment = document.getElementById("orderPaymentFilter")?.value || "";
+    const from = document.getElementById("orderFromDate")?.value || "";
+    const to = document.getElementById("orderToDate")?.value || "";
+    const sort = document.getElementById("orderSortFilter")?.value || "newest";
+    const filtered = allOrders.filter(order => {
+        const haystack = [order.order_number, order.id, order.customer_name, order.customer_phone, order.customer_email]
+            .map(value => String(value || "").toLowerCase()).join(" ");
+        const day = orderDateLocal(order.created_at);
+        const paymentStatus = String(order.payment_status || "").toLowerCase();
+        const paid = ["paid", "paid / verified"].includes(paymentStatus);
+        const matchesPayment = !payment ||
+            (payment === "paid" ? paid : payment === "pending" ? (!paid && paymentStatus !== "failed" && paymentStatus !== "refunded") : paymentStatus === payment);
+        return (!query || haystack.includes(query)) &&
+            (!status || (order.order_status || "Pending") === status) && matchesPayment &&
+            (!from || (day && day >= from)) && (!to || (day && day <= to));
+    });
+    filtered.sort((a,b) => {
+        if (sort === "high" || sort === "low") return sort === "high" ? Number(b.total_amount || 0) - Number(a.total_amount || 0) : Number(a.total_amount || 0) - Number(b.total_amount || 0);
+        const diff = new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        return sort === "oldest" ? -diff : diff;
+    });
+    return filtered;
+}
+
+function applyOrderFilters() {
+    const list = getFilteredOrders();
+    document.getElementById("orderResultCount").textContent = `${list.length} of ${allOrders.length} orders shown`;
+    renderOrders(list);
+}
+
+function resetOrderFilters() {
+    ["orderSearch", "orderStatusFilter", "orderPaymentFilter", "orderFromDate", "orderToDate"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+    document.getElementById("orderSortFilter").value = "newest";
+    applyOrderFilters();
+}
+
+function exportOrdersExcel() {
+    if (!window.XLSX) { alert("Excel export library did not load. Check your connection and refresh."); return; }
+    const orders = getFilteredOrders();
+    if (!orders.length) { alert("No orders match the selected filters."); return; }
+    const rows = orders.map(order => ({
+        "Order Number": order.order_number || order.id,
+        "Order Date": formatDate(order.created_at),
+        "Customer": order.customer_name || "",
+        "Phone": order.customer_phone || "",
+        "Email": order.customer_email || "",
+        "City": order.customer_city || "",
+        "State": order.customer_state || "",
+        "PIN": order.customer_pincode || "",
+        "Order Amount INR": Number(order.total_amount || 0),
+        "Payment Method": order.payment_method || "",
+        "Payment Status": order.payment_status || "",
+        "Order Status": order.order_status || "Pending",
+        "Payment Reference": order.payment_reference || "",
+        "Carrier": order.carrier_name || "",
+        "Tracking Number": order.tracking_number || "",
+        "Items": normaliseItems(order.items).map(item => `${item.name || "Product"} x ${item.qty ?? item.quantity ?? 1}`).join("; ")
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws["!cols"] = [23,22,25,16,28,16,16,12,18,18,19,16,26,16,20,42].map(wch => ({ wch }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
+    XLSX.writeFile(wb, "Amber_Auto_Orders.xlsx");
+}
 
 function formatDeliveryDate(value) {
     if (!value) return "";
