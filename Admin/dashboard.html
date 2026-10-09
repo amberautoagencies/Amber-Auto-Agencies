@@ -413,6 +413,215 @@ body {
     }
 }
 
+
+/* ==============================================================
+   COMPACT ADMIN DESIGN — PRESENTATION ONLY
+   No Supabase queries, payment logic, exports or element IDs changed.
+   ============================================================== */
+:root {
+    --aaa-ink: #111b2f;
+    --aaa-muted: #66758b;
+    --aaa-line: #e6eaf0;
+    --aaa-amber: #ea9900;
+    --aaa-surface: #ffffff;
+}
+html { -webkit-text-size-adjust: 100%; }
+body {
+    background: #f5f7fa;
+    color: var(--aaa-ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    line-height: 1.45;
+}
+button, input, select { font: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+    outline: 3px solid rgba(234,153,0,.43);
+    outline-offset: 2px;
+}
+.header {
+    background: #121b2b;
+    padding: 12px max(20px, calc((100vw - 1280px) / 2 + 22px));
+    min-height: 72px;
+    border-bottom: 3px solid #e99b0a;
+    gap: 16px;
+}
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-mark {
+    flex: 0 0 41px;
+    width: 41px;
+    height: 41px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: #f1a313;
+    color: #172136;
+    font-size: 13px;
+    font-weight: 850;
+    letter-spacing: -.4px;
+}
+.brand-name { min-width: 0; }
+.brand-name h1 { font-size: 17px; font-weight: 750; line-height: 1.2; margin: 0; }
+.brand-name span { display: block; font-size: 10px; letter-spacing: 1.7px; color: #aebbd0; margin-top: 4px; font-weight: 700; }
+.logout {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.28);
+    color: #fff;
+    padding: 9px 15px;
+    border-radius: 9px;
+    white-space: nowrap;
+}
+.logout:hover { background: #273448; }
+.container { max-width: 1280px; padding: 25px 22px 38px; }
+.welcome { margin: 0 0 17px; }
+.eyebrow { font-size: 10px; font-weight: 800; color: #a86900; letter-spacing: 1.8px; margin-bottom: 3px; }
+.welcome h2 { margin: 0 0 3px; font-size: 27px; line-height: 1.2; letter-spacing: -.6px; }
+.welcome p { margin: 0; font-size: 13px; color: var(--aaa-muted); }
+.quick-access { margin-bottom: 20px; }
+.quick-access-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #7a8596; margin-bottom: 8px; }
+.menu { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-top: 0; }
+.menu-item {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 14px 13px;
+    color: var(--aaa-ink);
+    background: var(--aaa-surface);
+    border: 1px solid var(--aaa-line);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(16,24,40,.035);
+    text-decoration: none;
+    cursor: pointer;
+}
+.menu-item:hover { border-color: #efbf63; background: #fffdf8; transform: none; box-shadow: 0 2px 10px rgba(16,24,40,.06); }
+.menu-icon {
+    flex: 0 0 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #fff5e2;
+    font-size: 20px;
+}
+.menu-copy { display: flex; flex-direction: column; min-width: 0; }
+.menu-copy strong { font-size: 14px; font-weight: 750; line-height: 1.25; }
+.menu-copy small { margin-top: 3px; font-size: 11px; line-height: 1.25; color: var(--aaa-muted); }
+.menu-chevron { margin-left: auto; font-size: 22px; color: #aab2bd; line-height: 1; }
+.cards { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-top: 0; }
+.card,
+.sales-chart-wrap,
+.report-export-wrap,
+.sales-table-wrap,
+.best-sellers-wrap {
+    min-width: 0;
+    background: var(--aaa-surface);
+    border: 1px solid var(--aaa-line);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(17,27,47,.035);
+}
+.cards .card { min-height: 112px; padding: 19px 20px 17px; border-top: 3px solid #e6eaf0; }
+.cards .card:nth-child(4) { border-top-color: #e9a21a; }
+.card h3 { font-size: 12px; font-weight: 650; line-height: 1.4; margin: 0 0 9px; color: #626f82; }
+.number { font-size: clamp(23px, 2.3vw, 29px); line-height: 1.25; color: #182538; overflow-wrap: anywhere; }
+.cards .card:nth-child(4) .number { color: #bd7300; }
+.sales-section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 15px;
+    margin-top: 24px;
+}
+.sales-section > h2 {
+    grid-column: 1 / -1;
+    font-size: 19px;
+    letter-spacing: -.25px;
+    margin: 0 0 -3px;
+}
+.sales-grid { grid-column: 1 / -1; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 11px; }
+.sales-grid .card { padding: 14px 15px; min-height: 86px; }
+.sales-grid .card h3 { font-size: 11px; margin: 0 0 8px; }
+.sales-grid .number { font-size: clamp(18px, 1.8vw, 23px); color: #222f43; }
+.sales-grid .card:nth-child(9) .number,
+.sales-grid .card:nth-child(10) .number { color: #b47300; }
+.sales-chart-wrap,
+.report-export-wrap { grid-column: 1 / -1; margin-top: 0; padding: 20px; }
+.sales-chart-wrap h3,
+.report-export-wrap h3,
+.sales-table-wrap h3,
+.best-sellers-wrap h3 { font-size: 16px; font-weight: 750; letter-spacing: -.2px; }
+.sales-chart-header { margin-bottom: 8px; }
+.sales-chart-controls { gap: 6px; }
+.chart-filter-btn { padding: 7px 10px; border-radius: 8px; font-size: 12px; }
+.chart-filter-btn.active { background: #eaa01c; border-color: #eaa01c; color: #172136; }
+.chart-period-note { margin: 0 0 8px; font-size: 12px; }
+.sales-chart-canvas-wrap { height: 280px; }
+.report-export-header p { font-size: 12px; }
+.report-export-controls { margin-top: 14px; gap: 10px; }
+.report-field input { padding: 9px 10px; min-height: 40px; }
+.report-btn { padding: 9px 12px; min-height: 40px; font-size: 13px; }
+.report-summary { margin-top: 12px; padding: 9px 11px; }
+.sales-table-wrap,
+.best-sellers-wrap { grid-column: span 1; margin-top: 0; padding: 17px; overflow-x: auto; }
+.sales-table-wrap h3,
+.best-sellers-wrap h3 { margin: 0 0 12px; }
+.sales-table,
+.best-sellers-table { width: 100%; }
+.sales-table th,
+.sales-table td,
+.best-sellers-table th,
+.best-sellers-table td {
+    font-size: 12px;
+    padding: 9px 8px;
+    white-space: nowrap;
+}
+.sales-table th,
+.best-sellers-table th { color: #5c697d; background: #f6f8fa; }
+.status-chip { padding: 4px 7px; }
+@media (max-width: 1080px) {
+    .menu { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .sales-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .sales-table-wrap, .best-sellers-wrap { grid-column: 1 / -1; }
+}
+@media (max-width: 680px) {
+    .header { padding: 12px 15px; min-height: 66px; }
+    .brand-mark { flex-basis: 34px; width: 34px; height: 34px; font-size: 11px; border-radius: 9px; }
+    .brand { gap: 9px; }
+    .brand-name h1 { font-size: 14px; }
+    .brand-name span { font-size: 9px; letter-spacing: 1.15px; }
+    .logout { padding: 8px 12px; font-size: 12px; }
+    .container { padding: 18px 14px 30px; }
+    .welcome { margin-bottom: 15px; }
+    .welcome h2 { font-size: 23px; }
+    .quick-access { margin-bottom: 17px; }
+    .menu { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .menu-item { padding: 11px; gap: 8px; }
+    .menu-icon { flex-basis: 31px; height: 31px; border-radius: 8px; font-size: 16px; }
+    .menu-copy strong { font-size: 12px; }
+    .menu-copy small { display: none; }
+    .menu-chevron { display: none; }
+    .cards { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .cards .card { min-height: 96px; padding: 14px 13px; }
+    .card h3 { font-size: 11px; margin-bottom: 7px; }
+    .cards .number { font-size: clamp(20px,6vw,26px); }
+    .sales-section { gap: 11px; margin-top: 19px; }
+    .sales-section > h2 { font-size: 18px; }
+    .sales-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .sales-grid .card { min-height: 80px; padding: 12px; }
+    .sales-grid .number { font-size: 19px; }
+    .sales-chart-wrap, .report-export-wrap, .sales-table-wrap, .best-sellers-wrap { padding: 14px; }
+    .sales-chart-canvas-wrap { height: 220px; }
+    .sales-chart-header { align-items: flex-start; }
+    .chart-filter-btn { padding: 7px 8px; font-size: 11px; }
+    .chart-select { font-size: 12px; max-width: 100%; }
+    .report-export-controls { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .report-btn { font-size: 12px; }
+    .sales-table-wrap,.best-sellers-wrap { grid-column: 1/-1; }
+}
+@media (max-width: 370px) {
+    .brand-name h1 { font-size: 12px; }
+    .menu-item { padding: 9px 8px; gap: 6px; }
+    .menu-icon { flex-basis: 27px; height: 27px; }
+    .menu-copy strong { font-size: 11px; }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -428,19 +637,14 @@ body {
 <!-- HEADER -->
 
 <div class="header">
-
-    <h1>
-        Amber Auto Agencies — Admin
-    </h1>
-
-    <button
-        class="logout"
-        onclick="logout()">
-
-        Logout
-
-    </button>
-
+    <div class="brand">
+        <div class="brand-mark" aria-hidden="true">AAA</div>
+        <div class="brand-name">
+            <h1>Amber Auto Agencies</h1>
+            <span>ADMIN DASHBOARD</span>
+        </div>
+    </div>
+    <button class="logout" onclick="logout()">Logout</button>
 </div>
 
 <!-- MAIN -->
@@ -448,17 +652,39 @@ body {
 <div class="container">
 
     <div class="welcome">
-
-        <h2>
-            Dashboard
-        </h2>
-
-        <p>
-            Welcome to the Amber Auto Agencies
-            Admin Panel.
-        </p>
-
+        <div>
+            <div class="eyebrow">OVERVIEW</div>
+            <h2>Dashboard</h2>
+            <p>Sales, orders and stock — all in one place.</p>
+        </div>
     </div>
+
+    <!-- QUICK ADMIN NAVIGATION -->
+    <nav class="quick-access" aria-label="Admin quick access">
+        <div class="quick-access-label">QUICK ACCESS</div>
+        <div class="menu">
+            <a class="menu-item" href="products.html">
+                <span class="menu-icon" aria-hidden="true">📦</span>
+                <span class="menu-copy"><strong>Products</strong><small>Manage inventory</small></span>
+                <span class="menu-chevron" aria-hidden="true">›</span>
+            </a>
+            <a class="menu-item" href="orders.html">
+                <span class="menu-icon" aria-hidden="true">🛒</span>
+                <span class="menu-copy"><strong>Orders</strong><small>Track and update</small></span>
+                <span class="menu-chevron" aria-hidden="true">›</span>
+            </a>
+            <a class="menu-item" href="customers.html">
+                <span class="menu-icon" aria-hidden="true">👥</span>
+                <span class="menu-copy"><strong>Customers</strong><small>Details and history</small></span>
+                <span class="menu-chevron" aria-hidden="true">›</span>
+            </a>
+            <a class="menu-item" href="settings.html">
+                <span class="menu-icon" aria-hidden="true">⚙️</span>
+                <span class="menu-copy"><strong>Settings</strong><small>Business preferences</small></span>
+                <span class="menu-chevron" aria-hidden="true">›</span>
+            </a>
+        </div>
+    </nav>
 
     <!-- STATISTICS -->
 
@@ -678,64 +904,6 @@ body {
         </div>
     </div>
 
-    <!-- ADMIN MENU -->
-
-    <div class="menu">
-
-        <div
-            class="menu-item"
-            onclick="window.location.href='products.html'">
-
-            <h3>📦 Products</h3>
-
-            <p>
-                Add, edit and manage
-                your products.
-            </p>
-
-        </div>
-
-        <div
-            class="menu-item"
-            onclick="window.location.href='orders.html'">
-
-            <h3>🛒 Orders</h3>
-
-            <p>
-                View and manage
-                customer orders.
-            </p>
-
-        </div>
-
-        <div
-            class="menu-item"
-            onclick="window.location.href='customers.html'">
-
-            <h3>👥 Customers</h3>
-
-            <p>
-                View customers, purchase
-                totals and order history.
-            </p>
-
-        </div>
-
-        <div
-            class="menu-item"
-            onclick="window.location.href='settings.html'">
-
-            <h3>⚙️ Business Settings</h3>
-
-            <p>
-                Manage your business
-                information, contact
-                details and payment settings.
-            </p>
-
-        </div>
-
-    </div>
 
 </div>
 
